@@ -1,0 +1,7 @@
+.idea/
+.settings/
+logs/
+bin/
+.classpath
+.project
+MJCompiler.iml

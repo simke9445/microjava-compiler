@@ -1,0 +1,67 @@
+<project name="MJCompiler" basedir=".">
+
+    <target name="cleanLexer">
+        <delete file="src/rs/ac/bg/etf/pp1/Yylex.java" />
+    </target>
+
+    <target name="buildLexer" depends="cleanLexer">
+        <java jar="lib/JFlex.jar" fork="true">
+            <arg value="-d" />
+            <arg value="./src/rs/ac/bg/etf/pp1" />
+            <arg value="spec/mjlexer.flex" />
+        </java>
+    </target>
+
+    <target name="cleanParser">
+        <delete file="src/rs/ac/bg/etf/pp1/MJParser.java" />
+        <delete dir="src/rs/ac/bg/etf/pp1/ast" />
+    </target>
+
+    <target name="generateParser" depends="cleanParser">
+        <java jar="lib/cup_v10k.jar" fork="true">
+            <arg value="-destdir" />
+            <arg value="src/rs/ac/bg/etf/pp1" />
+            <arg value="-ast" />
+            <arg value="src.rs.ac.bg.etf.pp1.ast" />
+            <arg value="-parser" />
+            <arg value="MJParser" />
+            <!--<arg value="-dump_states" />-->
+            <arg value="-buildtree" />
+            <arg value="spec/mjparser.cup" />
+        </java>
+    </target>
+
+    <target name="buildParser" depends="generateParser">
+        <replace dir="src" token="src.rs.ac.bg.etf.pp1.ast" value="rs.ac.bg.etf.pp1.ast" summary="true" />
+    </target>
+
+    <target name="disasm">
+        <java classname="rs.etf.pp1.mj.runtime.disasm">
+            <arg value="test/program.obj"/>
+            <classpath>
+                <pathelement location="lib/mj-runtime-1.1.jar"/>
+            </classpath>
+        </java>
+    </target>
+
+    <target name="runObj">
+        <java classname="rs.etf.pp1.mj.runtime.Run">
+            <arg value="test/program.obj"/>
+            <classpath>
+                <pathelement location="lib/mj-runtime-1.1.jar"/>
+            </classpath>
+        </java>
+    </target>
+
+    <!--<target name="compile" depends="buildLexer">-->
+        <!--<javac srcdir="src/rs/ac/bg/etf/pp1" includeantruntime="false">-->
+            <!--<classpath>-->
+                <!--<pathelement path="lib/JFlex.jar" />-->
+                <!--<pathelement path="lib/cup_v10k.jar" />-->
+                <!--<pathelement path="lib/log4j-1.2.17.jar" />-->
+                <!--<pathelement path="lib/mj-runtime.jar" />-->
+                <!--<pathelement path="lib/symboltable.jar" />-->
+            <!--</classpath>-->
+        <!--</javac>-->
+    <!--</target>-->
+</project>

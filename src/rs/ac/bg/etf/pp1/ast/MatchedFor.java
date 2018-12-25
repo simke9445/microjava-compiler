@@ -1,0 +1,78 @@
+// generated with ast extension for cup
+// version 0.8
+// 25/11/2018 23:8:33
+
+
+package rs.ac.bg.etf.pp1.ast;
+
+public class MatchedFor extends Matched {
+
+    private ForStatement ForStatement;
+    private Matched Matched;
+
+    public MatchedFor (ForStatement ForStatement, Matched Matched) {
+        this.ForStatement=ForStatement;
+        if(ForStatement!=null) ForStatement.setParent(this);
+        this.Matched=Matched;
+        if(Matched!=null) Matched.setParent(this);
+    }
+
+    public ForStatement getForStatement() {
+        return ForStatement;
+    }
+
+    public void setForStatement(ForStatement ForStatement) {
+        this.ForStatement=ForStatement;
+    }
+
+    public Matched getMatched() {
+        return Matched;
+    }
+
+    public void setMatched(Matched Matched) {
+        this.Matched=Matched;
+    }
+
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
+
+    public void childrenAccept(Visitor visitor) {
+        if(ForStatement!=null) ForStatement.accept(visitor);
+        if(Matched!=null) Matched.accept(visitor);
+    }
+
+    public void traverseTopDown(Visitor visitor) {
+        accept(visitor);
+        if(ForStatement!=null) ForStatement.traverseTopDown(visitor);
+        if(Matched!=null) Matched.traverseTopDown(visitor);
+    }
+
+    public void traverseBottomUp(Visitor visitor) {
+        if(ForStatement!=null) ForStatement.traverseBottomUp(visitor);
+        if(Matched!=null) Matched.traverseBottomUp(visitor);
+        accept(visitor);
+    }
+
+    public String toString(String tab) {
+        StringBuffer buffer=new StringBuffer();
+        buffer.append(tab);
+        buffer.append("MatchedFor(\n");
+
+        if(ForStatement!=null)
+            buffer.append(ForStatement.toString("  "+tab));
+        else
+            buffer.append(tab+"  null");
+        buffer.append("\n");
+
+        if(Matched!=null)
+            buffer.append(Matched.toString("  "+tab));
+        else
+            buffer.append(tab+"  null");
+        buffer.append("\n");
+
+        buffer.append(tab);
+        buffer.append(") [MatchedFor]");
+        return buffer.toString();
+    }
+}
