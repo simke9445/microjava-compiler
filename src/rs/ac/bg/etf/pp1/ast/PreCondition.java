@@ -1,28 +1,15 @@
 // generated with ast extension for cup
 // version 0.8
-// 26/11/2018 14:48:51
+// 26/11/2018 14:48:52
 
 
 package rs.ac.bg.etf.pp1.ast;
 
-public class Type implements SyntaxNode {
+public class PreCondition implements SyntaxNode {
 
     private SyntaxNode parent;
     private int line;
-    public rs.etf.pp1.symboltable.concepts.Struct struct = null;
-
-    private String typeName;
-
-    public Type (String typeName) {
-        this.typeName=typeName;
-    }
-
-    public String getTypeName() {
-        return typeName;
-    }
-
-    public void setTypeName(String typeName) {
-        this.typeName=typeName;
+    public PreCondition () {
     }
 
     public SyntaxNode getParent() {
@@ -59,13 +46,10 @@ public class Type implements SyntaxNode {
     public String toString(String tab) {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
-        buffer.append("Type(\n");
-
-        buffer.append(" "+tab+typeName);
-        buffer.append("\n");
+        buffer.append("PreCondition(\n");
 
         buffer.append(tab);
-        buffer.append(") [Type]");
+        buffer.append(") [PreCondition]");
         return buffer.toString();
     }
 }

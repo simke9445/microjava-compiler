@@ -1,28 +1,28 @@
 // generated with ast extension for cup
 // version 0.8
-// 25/11/2018 23:8:33
+// 26/11/2018 14:48:52
 
 
 package rs.ac.bg.etf.pp1.ast;
 
-public class OrCondition extends Condition {
+public class OrCondition extends ConditionList {
 
-    private Condition Condition;
+    private ConditionList ConditionList;
     private CondTerm CondTerm;
 
-    public OrCondition (Condition Condition, CondTerm CondTerm) {
-        this.Condition=Condition;
-        if(Condition!=null) Condition.setParent(this);
+    public OrCondition (ConditionList ConditionList, CondTerm CondTerm) {
+        this.ConditionList=ConditionList;
+        if(ConditionList!=null) ConditionList.setParent(this);
         this.CondTerm=CondTerm;
         if(CondTerm!=null) CondTerm.setParent(this);
     }
 
-    public Condition getCondition() {
-        return Condition;
+    public ConditionList getConditionList() {
+        return ConditionList;
     }
 
-    public void setCondition(Condition Condition) {
-        this.Condition=Condition;
+    public void setConditionList(ConditionList ConditionList) {
+        this.ConditionList=ConditionList;
     }
 
     public CondTerm getCondTerm() {
@@ -38,18 +38,18 @@ public class OrCondition extends Condition {
     }
 
     public void childrenAccept(Visitor visitor) {
-        if(Condition!=null) Condition.accept(visitor);
+        if(ConditionList!=null) ConditionList.accept(visitor);
         if(CondTerm!=null) CondTerm.accept(visitor);
     }
 
     public void traverseTopDown(Visitor visitor) {
         accept(visitor);
-        if(Condition!=null) Condition.traverseTopDown(visitor);
+        if(ConditionList!=null) ConditionList.traverseTopDown(visitor);
         if(CondTerm!=null) CondTerm.traverseTopDown(visitor);
     }
 
     public void traverseBottomUp(Visitor visitor) {
-        if(Condition!=null) Condition.traverseBottomUp(visitor);
+        if(ConditionList!=null) ConditionList.traverseBottomUp(visitor);
         if(CondTerm!=null) CondTerm.traverseBottomUp(visitor);
         accept(visitor);
     }
@@ -59,8 +59,8 @@ public class OrCondition extends Condition {
         buffer.append(tab);
         buffer.append("OrCondition(\n");
 
-        if(Condition!=null)
-            buffer.append(Condition.toString("  "+tab));
+        if(ConditionList!=null)
+            buffer.append(ConditionList.toString("  "+tab));
         else
             buffer.append(tab+"  null");
         buffer.append("\n");

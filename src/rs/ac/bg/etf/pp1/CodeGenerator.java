@@ -26,10 +26,35 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 
 	public CodeGenerator() {
-		// TODO: add predefined functions code:
 		// 		ord - convert char to int
-		// 		len - Code.arraylength
 		// 		chr - convert int to char
+		Obj chrObj = SymbolTable.find("chr");
+		Obj ordObj = SymbolTable.find("ord");
+		Obj lenObj = SymbolTable.find("len");
+
+		chrObj.setAdr(Code.pc);
+		ordObj.setAdr(Code.pc);
+
+		// chr & ord method definitions
+		Code.put(Code.enter);
+		Code.put(1);
+		Code.put(1);
+		// put the actual param on the stack
+		Code.put(Code.load_n);
+		Code.put(Code.exit);
+		Code.put(Code.return_);
+
+		lenObj.setAdr(Code.pc);
+
+		// len method definition
+		Code.put(Code.enter);
+		Code.put(1);
+		Code.put(1);
+		// put the actual param on the stack
+		Code.put(Code.load_n);
+		Code.put(Code.arraylength);
+		Code.put(Code.exit);
+		Code.put(Code.return_);
 	}
 
 	public void report_error(String message, SyntaxNode info) {
@@ -79,15 +104,6 @@ public class CodeGenerator extends VisitorAdaptor {
 	public void visit(ConstValFactor factor) {
 		Code.load(factor.getConstValue().obj);
 	}
-
-//	public void visit(FieldDesignator field) {
-//		// TODO: refactor this for classes
-//		if (field.getDesignator().obj.getType().getKind() == Struct.Enum) {
-//			Obj value = field.getDesignator().obj.getType().getMembersTable().searchKey(field.getName());
-//
-//			Code.load(value);
-//		}
-//	}
 
 	public void visit(PreArrayIndex preArrayIndex) {
 		// load the array address to estack, followed by index load after expr is resolved
@@ -150,7 +166,6 @@ public class CodeGenerator extends VisitorAdaptor {
 			Code.put(Code.trap);
 			Code.put(1);
 		}
-
 	}
 
 	public void visit(ReturnExpr returnExpr) {
@@ -185,69 +200,181 @@ public class CodeGenerator extends VisitorAdaptor {
 		Code.put2(destAdr);
 	}
 
-	private List<Integer> continueAdrs = new ArrayList<>();
-	private List<Integer> breakAdrs = new ArrayList<>();
+	private Stack<Integer> preCondAdrStack = new Stack<>();
+	private Stack<Integer> preCondFixupAdrStack = new Stack<>();
+	private Stack<Integer> preDesignAdrStack = new Stack<>();
+	private Stack<Integer> preDesignFixupAdrStack = new Stack<>();
+	private Stack<List<Integer>> continueFixupAdrsStack = new Stack<>();
+	private Stack<List<Integer>> breakFixupAdrsStack = new Stack<>();
 
-	private Integer preCondAdr;
-	private Integer preCondFixup;
-	private Integer preDesignAdr;
-	private Integer preDesignFixup;
-
-	// TODO: Support nesting of for loops
-
+	// TODO: Check if placeholder grammar is necessary
 	public void visit(ForPreCondition forPreCondition) {
-		preCondAdr = Code.pc;
+		preCondAdrStack.push(Code.pc);
+
+		continueFixupAdrsStack.push(new ArrayList<>());
+		breakFixupAdrsStack.push(new ArrayList<>());
 	}
 
 	public void visit(ForPreDesignator forPreDesignator) {
-		// false jump to loop end
-		if (relop.empty()) {
-			Code.putJump(0);
-		} else {
-			Code.putFalseJump(relop.pop(), 0);
-		}
+		// false jump to loop end, with jump args properly placed
+		// on estack from condition statement
+		Code.putFalseJump(Code.eq, 0);
 
-		preCondFixup = Code.pc - 2;
+		preCondFixupAdrStack.push(Code.pc - 2);
 
 		// jump to after designator statement - loop start
 		Code.putJump(0);
-		preDesignFixup = Code.pc - 2;
-		preDesignAdr = Code.pc;
+		preDesignFixupAdrStack.push(Code.pc - 2);
+		preDesignAdrStack.push(Code.pc);
 	}
 
 	public void visit(ForPostDesignator forPostDesignator) {
 		// fixup designator statement skip
-		Code.putJump(preCondAdr);
-		Code.fixup(preDesignFixup);
+		Code.putJump(preCondAdrStack.pop());
+		Code.fixup(preDesignFixupAdrStack.pop());
 	}
 
-	public void visit(ForStatement forStatement) {
+	private void afterForFixup() {
 		// fixup continue jumps
-		continueAdrs.forEach(adr -> Code.fixup(adr));
-		continueAdrs.clear();
+		List<Integer> continueFixupAdrs = continueFixupAdrsStack.pop();
+		continueFixupAdrs.forEach(adr -> Code.fixup(adr));
+		continueFixupAdrs.clear();
 
-		Code.putJump(preDesignAdr);
+		Code.putJump(preDesignAdrStack.pop());
 
 		// fixup condition jump
-		Code.fixup(preCondFixup);
+		Code.fixup(preCondFixupAdrStack.pop());
 
-		// fixup break jumps - shifted
-		breakAdrs.forEach(adr -> Code.fixup(adr));
-		breakAdrs.clear();
+		// fixup break jumps
+		List<Integer> breakFixupAdrs = breakFixupAdrsStack.pop();
+		breakFixupAdrs.forEach(adr -> Code.fixup(adr));
+		breakFixupAdrs.clear();
 	}
 
 	public void visit(BreakStmt breakStmt) {
 		Code.putJump(0);
-		breakAdrs.add(Code.pc - 2);
+		breakFixupAdrsStack.peek().add(Code.pc - 2);
 	}
 
 	public void visit(ContinueStmt continueStmt) {
 		Code.putJump(0);
-		continueAdrs.add(Code.pc - 2);
+		continueFixupAdrsStack.peek().add(Code.pc - 2);
 	}
 
-	// TODO: Add if statements
-	// TODO: Support nesting of if statements
+	public void visit(MatchedFor matchedFor) {
+		this.afterForFixup();
+	}
+
+	public void visit(UnmatchedFor unmatchedFor) {
+		this.afterForFixup();
+	}
+
+	private Stack<Integer> ifCondFixupAdrStack = new Stack<>();
+
+	public void visit(IfCondClause ifCondition) {
+		// false jump to clause end, with jump args properly placed
+		// on estack from condition statement
+		Code.putFalseJump(Code.eq, 0);
+		ifCondFixupAdrStack.push(Code.pc - 2);
+	}
+
+	public void visit(ElseCondition elseCondition) {
+		Code.putJump(0);
+
+		Code.fixup(ifCondFixupAdrStack.pop());
+		ifCondFixupAdrStack.push(Code.pc - 2);
+	}
+
+	private void afterIfFixup() {
+		Code.fixup(ifCondFixupAdrStack.pop());
+	}
+
+	public void visit(MatchedIf matchedIf) {
+		this.afterIfFixup();
+	}
+
+	public void visit(UnmatchedIf unmatchedIf) {
+		this.afterIfFixup();
+	}
+
+	public void visit(UnmatchedIfElse unmatchedIfElse) {
+		this.afterIfFixup();
+	}
+
+	private List<Integer> condTermFixupAdrs = new ArrayList<>();
+	private List<Integer> condFactFixupAdrs = new ArrayList<>();
+
+	public void visit(PreCondition preCondition) {
+		// assume that the condition will be false
+		// provide arguments for proper jeq
+		Code.loadConst(1);
+		Code.loadConst(0);
+	}
+
+	public void visit(Condition condition) {
+		condTermFixupAdrs.forEach(adr -> Code.fixup(adr));
+		condTermFixupAdrs.clear();
+    }
+
+	private void afterCondTermFixup() {
+		// jump to END - set jump args to true
+		Code.put(Code.pop);
+		Code.loadConst(1);
+		Code.putJump(0);
+		condTermFixupAdrs.add(Code.pc - 2);
+
+		condFactFixupAdrs.forEach(adr -> Code.fixup(adr));
+		condFactFixupAdrs.clear();
+	}
+
+	public void visit(OrCondition orCondition) {
+		this.afterCondTermFixup();
+	}
+
+	public void visit(TermCondition termCondition) {
+		this.afterCondTermFixup();
+	}
+
+	private void afterCondFactFixup() {
+		// jump to next OR
+		Code.putFalseJump(relop.pop(), 0);
+		condFactFixupAdrs.add(Code.pc - 2);
+	}
+
+	public void visit(RelopCondFact relopCondFact) {
+		this.afterCondFactFixup();
+	}
+
+	public void visit(ExprCondFact exprCondFact) {
+		Code.loadConst(1);
+		relop.push(Code.eq);
+
+		this.afterCondFactFixup();
+	}
+
+	public void visit(IsEqualRelop is) {
+		relop.push(Code.eq);
+	}
+
+	public void visit(NotEqualRelop ne) {
+		relop.push(Code.ne);
+	}
+
+	public void visit(GreaterRelop ge) {
+		relop.push(Code.gt);
+	}
+
+	public void visit(LesserRelop le) {
+		relop.push(Code.lt);
+	}
+
+	public void visit(GreaterOrEqualRelop ge) {
+		relop.push(Code.ge);
+	}
+
+	public void visit(LesserOrEqualRelop le) {
+		relop.push(Code.le);
+	}
 
 	public void visit(AddExpr addExpr) {
 		Code.put(addop.pop());
@@ -279,43 +406,5 @@ public class CodeGenerator extends VisitorAdaptor {
 
 	public void visit(ModMulOp mod) {
 		mulop.push(Code.rem);
-	}
-
-	public void visit(RelopCondFact relopCondFact) {
-		Code.put(relop.pop());
-	}
-
-	// TODO: implement AND and OR terms
-
-	public void visit(AndCondTerm andCondTerm) {
-//		Code.put(Code.and)
-	}
-
-	public void visit(OrCondition orCondition) {
-//		Code.put(Code.or)
-	}
-
-	public void visit(IsEqualRelop is) {
-		relop.push(Code.eq);
-	}
-
-	public void visit(NotEqualRelop ne) {
-		relop.push(Code.ne);
-	}
-
-	public void visit(GreaterRelop ge) {
-		relop.push(Code.gt);
-	}
-
-	public void visit(LesserRelop le) {
-		relop.push(Code.lt);
-	}
-
-	public void visit(GreaterOrEqualRelop ge) {
-		relop.push(Code.ge);
-	}
-
-	public void visit(LesserOrEqualRelop le) {
-		relop.push(Code.le);
 	}
 }

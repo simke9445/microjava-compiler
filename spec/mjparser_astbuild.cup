@@ -101,6 +101,9 @@ nonterminal ForPreCondition ForPreCondition;
 nonterminal ForPreDesignator ForPreDesignator;
 nonterminal ForPostDesignator ForPostDesignator;
 nonterminal ForStatement ForStatement;
+nonterminal ElseCondition ElseCondition;
+nonterminal ConditionList ConditionList;
+nonterminal PreCondition PreCondition;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Obj Program, ProgName, Designator, MethodDecl, MethodTypeName, ConstValue, MethodSig, EnumName;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Expr, Factor, VarDeclList, ConstDecl;
@@ -219,7 +222,7 @@ Statement ::= (MatchedStmt) Matched:M1 {: RESULT=new MatchedStmt(M1); RESULT.set
 
 Unmatched ::= (UnmatchedIf) IF IfCondition:I1 Statement:S2 {: RESULT=new UnmatchedIf(I1, S2); RESULT.setLine(I1left); :}
             |
-            (UnmatchedIfElse) IF IfCondition:I1 Matched:M2 ELSE Unmatched:U3 {: RESULT=new UnmatchedIfElse(I1, M2, U3); RESULT.setLine(I1left); :}
+            (UnmatchedIfElse) IF IfCondition:I1 Matched:M2 ElseCondition:E3 Unmatched:U4 {: RESULT=new UnmatchedIfElse(I1, M2, E3, U4); RESULT.setLine(I1left); :}
             |
             (UnmatchedFor) ForStatement:F1 Unmatched:U2 {: RESULT=new UnmatchedFor(F1, U2); RESULT.setLine(F1left); :}
             ;
@@ -255,7 +258,7 @@ Matched ::= (DesignatorStmt) DesignatorStatement:D1 SEMI {: RESULT=new Designato
 			  |
 			  (MatchedFor) ForStatement:F1 Matched:M2 {: RESULT=new MatchedFor(F1, M2); RESULT.setLine(F1left); :}
 			  |
-              (MatchedIf) IF IfCondition:I1 Matched:M2 ELSE Matched:M3 {: RESULT=new MatchedIf(I1, M2, M3); RESULT.setLine(I1left); :}
+              (MatchedIf) IF IfCondition:I1 Matched:M2 ElseCondition:E3 Matched:M4 {: RESULT=new MatchedIf(I1, M2, E3, M4); RESULT.setLine(I1left); :}
               |
 			  (BreakStmt) BREAK SEMI {: RESULT=new BreakStmt(); :}
 			  |
@@ -263,6 +266,12 @@ Matched ::= (DesignatorStmt) DesignatorStatement:D1 SEMI {: RESULT=new Designato
 			  |
 			  (ScopeStmt) LBRACE StatementList:S1 RBRACE {: RESULT=new ScopeStmt(S1); RESULT.setLine(S1left); :}
 			  ;
+
+ForPreCondition ::= (ForPreCondition) {: RESULT=new ForPreCondition(); :} /* epsilon */;
+
+ForPreDesignator ::= (ForPreDesignator) {: RESULT=new ForPreDesignator(); :} /* epsilon */;
+
+ForPostDesignator ::= (ForPostDesignator) {: RESULT=new ForPostDesignator(); :} /* epsilon */;
 
 ForStatement ::= (ForStatement) FOR LPAREN OptionalDesignatorStatement:O1 SEMI ForPreCondition:F2 OptionalCondition:O3 SEMI ForPreDesignator:F4 OptionalDesignatorStatement:O5 ForPostDesignator:F6 RPAREN {: RESULT=new ForStatement(O1, F2, O3, F4, O5, F6); RESULT.setLine(O1left); :};
 
@@ -329,7 +338,13 @@ IfCondition ::= (IfCondClause) LPAREN Condition:C1 RPAREN {: RESULT=new IfCondCl
                 {: parser.report_info("Uspesan oporavak od greske pri navodjenju logickog izraza unutar if konstrukcije na liniji " + eleft, null); :} {: RESULT=new ErrorIfCond(); :}
                 ;
 
-Condition ::= (OrCondition) Condition:C1 OR CondTerm:C2 {: RESULT=new OrCondition(C1, C2); RESULT.setLine(C1left); :}
+ElseCondition ::= (ElseCondition) ELSE {: RESULT=new ElseCondition(); :};
+
+PreCondition ::= (PreCondition) {: RESULT=new PreCondition(); :} /* epsilon */;
+
+Condition ::= (Condition) PreCondition:P1 ConditionList:C2 {: RESULT=new Condition(P1, C2); RESULT.setLine(P1left); :};
+
+ConditionList ::= (OrCondition) ConditionList:C1 OR CondTerm:C2 {: RESULT=new OrCondition(C1, C2); RESULT.setLine(C1left); :}
 			|
 			(TermCondition) CondTerm:C1 {: RESULT=new TermCondition(C1); RESULT.setLine(C1left); :}
 			;

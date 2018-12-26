@@ -76,6 +76,7 @@ nonterminal PreArrayIndex;
 nonterminal EnumDecl, EnumFieldList, EnumField;
 nonterminal OptionalDesignatorStatement, OptionalCondition;
 nonterminal ForPreCondition, ForPreDesignator, ForPostDesignator, ForStatement;
+nonterminal ElseCondition, ConditionList, PreCondition;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Obj Program, ProgName, Designator, MethodDecl, MethodTypeName, ConstValue, MethodSig, EnumName;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Expr, Factor, VarDeclList, ConstDecl;
@@ -194,7 +195,7 @@ Statement ::= (MatchedStmt) Matched
 
 Unmatched ::= (UnmatchedIf) IF IfCondition Statement
             |
-            (UnmatchedIfElse) IF IfCondition Matched ELSE Unmatched
+            (UnmatchedIfElse) IF IfCondition Matched ElseCondition Unmatched
             |
             (UnmatchedFor) ForStatement Unmatched
             ;
@@ -230,7 +231,7 @@ Matched ::= (DesignatorStmt) DesignatorStatement SEMI
 			  |
 			  (MatchedFor) ForStatement Matched
 			  |
-              (MatchedIf) IF IfCondition Matched ELSE Matched
+              (MatchedIf) IF IfCondition Matched ElseCondition Matched
               |
 			  (BreakStmt) BREAK SEMI
 			  |
@@ -238,6 +239,12 @@ Matched ::= (DesignatorStmt) DesignatorStatement SEMI
 			  |
 			  (ScopeStmt) LBRACE StatementList RBRACE
 			  ;
+
+ForPreCondition ::= (ForPreCondition) /* epsilon */;
+
+ForPreDesignator ::= (ForPreDesignator) /* epsilon */;
+
+ForPostDesignator ::= (ForPostDesignator) /* epsilon */;
 
 ForStatement ::= (ForStatement) FOR LPAREN OptionalDesignatorStatement SEMI ForPreCondition OptionalCondition SEMI ForPreDesignator OptionalDesignatorStatement ForPostDesignator RPAREN;
 
@@ -304,7 +311,13 @@ IfCondition ::= (IfCondClause) LPAREN Condition RPAREN
                 {: parser.report_info("Uspesan oporavak od greske pri navodjenju logickog izraza unutar if konstrukcije na liniji " + eleft, null); :}
                 ;
 
-Condition ::= (OrCondition) Condition OR CondTerm
+ElseCondition ::= (ElseCondition) ELSE;
+
+PreCondition ::= (PreCondition) /* epsilon */;
+
+Condition ::= (Condition) PreCondition ConditionList;
+
+ConditionList ::= (OrCondition) ConditionList OR CondTerm
 			|
 			(TermCondition) CondTerm
 			;

@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 25/11/2018 23:8:34
+// 26/11/2018 14:48:52
 
 
 package rs.ac.bg.etf.pp1.ast;
@@ -8,20 +8,18 @@ package rs.ac.bg.etf.pp1.ast;
 public abstract class VisitorAdaptor implements Visitor { 
 
     public void visit(Unmatched Unmatched) { }
-    public void visit(ForPreCondition ForPreCondition) { }
     public void visit(Mulop Mulop) { }
     public void visit(Matched Matched) { }
     public void visit(Relop Relop) { }
+    public void visit(ConditionList ConditionList) { }
     public void visit(FormalParamDecl FormalParamDecl) { }
     public void visit(StatementList StatementList) { }
     public void visit(Addop Addop) { }
     public void visit(EnumFieldList EnumFieldList) { }
-    public void visit(ForPreDesignator ForPreDesignator) { }
     public void visit(Factor Factor) { }
     public void visit(CondTerm CondTerm) { }
     public void visit(Designator Designator) { }
     public void visit(Term Term) { }
-    public void visit(Condition Condition) { }
     public void visit(VarDeclIdent VarDeclIdent) { }
     public void visit(ConstValue ConstValue) { }
     public void visit(EnumField EnumField) { }
@@ -35,7 +33,6 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(DesignatorStatement DesignatorStatement) { }
     public void visit(ActualPars ActualPars) { }
     public void visit(OptionalCondition OptionalCondition) { }
-    public void visit(ForPostDesignator ForPostDesignator) { }
     public void visit(ConstDeclChain ConstDeclChain) { }
     public void visit(OptionalDesignatorStatement OptionalDesignatorStatement) { }
     public void visit(Statement Statement) { }
@@ -61,6 +58,9 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(AndCondTerm AndCondTerm) { visit(); }
     public void visit(TermCondition TermCondition) { visit(); }
     public void visit(OrCondition OrCondition) { visit(); }
+    public void visit(Condition Condition) { visit(); }
+    public void visit(PreCondition PreCondition) { visit(); }
+    public void visit(ElseCondition ElseCondition) { visit(); }
     public void visit(ErrorIfCond ErrorIfCond) { visit(); }
     public void visit(IfCondClause IfCondClause) { visit(); }
     public void visit(NoOptCondition NoOptCondition) { visit(); }
@@ -87,6 +87,9 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(NegExpr NegExpr) { visit(); }
     public void visit(AddExpr AddExpr) { visit(); }
     public void visit(ForStatement ForStatement) { visit(); }
+    public void visit(ForPostDesignator ForPostDesignator) { visit(); }
+    public void visit(ForPreDesignator ForPreDesignator) { visit(); }
+    public void visit(ForPreCondition ForPreCondition) { visit(); }
     public void visit(ScopeStmt ScopeStmt) { visit(); }
     public void visit(ContinueStmt ContinueStmt) { visit(); }
     public void visit(BreakStmt BreakStmt) { visit(); }

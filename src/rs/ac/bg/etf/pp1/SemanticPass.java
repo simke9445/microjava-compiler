@@ -27,6 +27,8 @@ public class SemanticPass extends VisitorAdaptor {
 
 	Logger log = Logger.getLogger(getClass());
 
+	// TODO: add semantic check for using Type Obj
+
 	public void report_error(String message, SyntaxNode info) {
 		errorDetected = true;
 		StringBuilder msg = new StringBuilder(message);
@@ -70,8 +72,8 @@ public class SemanticPass extends VisitorAdaptor {
 			// get local function params - first n are formal params
 			ArrayList<Obj> methLocalParams = new ArrayList<>(obj.getLocalSymbols());
 
-			// recursion - we need to get current scope arguments
-			// instead of currentMethod reference
+			// recursion - we need to get current scope arguments since we
+			// didn't close the scope & chained symbols yet
 			if (obj.equals(currentMethod)) {
 				methLocalParams = new ArrayList<>(SymbolTable.currentScope().values());
 			}
