@@ -138,6 +138,7 @@ public class SemanticPass extends VisitorAdaptor {
     private void updateClassMembers(Struct classStruct, Obj newObj) {
         SymbolDataStructure classMembers = classStruct.getMembersTable();
 
+        // overwrite existing entries if any
         classMembers.insertKey(newObj);
         classStruct.setMembers(classMembers);
     }
@@ -269,6 +270,8 @@ public class SemanticPass extends VisitorAdaptor {
             // we add vftPtr as first field
             Obj vftPtrObj = new Obj(Obj.Fld, "vftPtr", SymbolTable.intType, currentClass.getType().getNumberOfFields(), 0);
             this.updateClassMembers(currentClass.getType(), vftPtrObj);
+
+            SymbolTable.addClass(currentClass.getType());
         }
 
         className.obj = currentClass;
@@ -279,6 +282,7 @@ public class SemanticPass extends VisitorAdaptor {
         // TODO: check if this is necessary
         SymbolTable.chainLocalSymbols(currentClass);
         SymbolTable.closeScope();
+        SymbolTable.chainParentMethods(currentClass.getType());
 
         classDecl.obj = currentClass;
         currentClass = null;
@@ -290,7 +294,7 @@ public class SemanticPass extends VisitorAdaptor {
 
         // add extended fields first
         currentType.struct.getMembers().stream()
-                .filter(parentMemberObj -> parentMemberObj.getKind() == Obj.Fld)
+                .filter(member -> member.getKind() == Obj.Fld)
                 .forEach(fld -> this.updateClassMembers(currentClass.getType(), fld));
     }
 
@@ -427,6 +431,10 @@ public class SemanticPass extends VisitorAdaptor {
         SymbolTable.closeScope();
 
         methodDecl.obj = currentMethod;
+
+        if (currentClass != null) {
+            SymbolTable.addClassMethod(currentClass.getType(), currentMethod);
+        }
 
         returnFound = false;
         currentMethod = null;

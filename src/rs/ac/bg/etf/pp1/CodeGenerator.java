@@ -17,6 +17,7 @@ public class CodeGenerator extends VisitorAdaptor {
     private boolean isClassScope = false;
     private boolean isMain = false;
     private Obj currentMethod = null;
+    private Obj currentClass = null;
 
     private static List<Byte> MethodTable = new ArrayList<>();
     private static Map<Struct, Integer> classStructToVftAdrMap = new HashMap<>();
@@ -221,12 +222,14 @@ public class CodeGenerator extends VisitorAdaptor {
 
     public void visit(ClassName className) {
         isClassScope = true;
+        currentClass = className.obj;
     }
 
     public void visit(ClassDecl classDecl) {
         this.addClassEntryToVft(classDecl.obj);
 
         isClassScope = false;
+        currentClass = null;
     }
 
     public void visit(PrintStmt print) {
@@ -283,14 +286,23 @@ public class CodeGenerator extends VisitorAdaptor {
     }
 
     public void visit(IdentDesignator identDesignator) {
-        boolean isMethodVar = currentMethod.getLocalSymbols().stream()
-                .anyMatch(var -> var.getName().equals(identDesignator.getName()));
+        boolean hasImplicitThis = currentClass != null && (
+                currentClass.getType().getMembers()
+                        .stream()
+                        .anyMatch(member -> member.getName().equals(identDesignator.getName())) ||
+                SymbolTable.getClassMethods(currentClass.getType())
+                        .stream()
+                        .anyMatch(method -> method.getName().equals(identDesignator.getName()))
+        );
 
-        boolean isGlobalVar = SymbolTable.find(identDesignator.getName()) != SymbolTable.noObj;
+        boolean isMethodParam = isClassScope &&
+                currentMethod != null &&
+                currentMethod.getLocalSymbols()
+                        .stream()
+                        .anyMatch(symbol -> symbol.getName().equals(identDesignator.getName()));
 
-        if (isClassScope && !isMethodVar && !isGlobalVar) {
+        if (hasImplicitThis && !isMethodParam) {
             // load "this" arg
-            // TODO: check if this is correct "this" impl => does it generate correct code
             Code.put(Code.load_n);
         }
     }
