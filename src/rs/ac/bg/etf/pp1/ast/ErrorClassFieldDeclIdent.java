@@ -1,13 +1,13 @@
 // generated with ast extension for cup
 // version 0.8
-// 30/11/2018 18:21:28
+// 30/11/2018 22:51:48
 
 
 package rs.ac.bg.etf.pp1.ast;
 
-public class ErrorVarDecl extends VarDeclIdent {
+public class ErrorClassFieldDeclIdent extends ClassFieldDeclIdent {
 
-    public ErrorVarDecl () {
+    public ErrorClassFieldDeclIdent () {
     }
 
     public void accept(Visitor visitor) {
@@ -28,10 +28,10 @@ public class ErrorVarDecl extends VarDeclIdent {
     public String toString(String tab) {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
-        buffer.append("ErrorVarDecl(\n");
+        buffer.append("ErrorClassFieldDeclIdent(\n");
 
         buffer.append(tab);
-        buffer.append(") [ErrorVarDecl]");
+        buffer.append(") [ErrorClassFieldDeclIdent]");
         return buffer.toString();
     }
 }

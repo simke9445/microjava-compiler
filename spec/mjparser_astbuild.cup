@@ -32,8 +32,11 @@ parser code {:
     public void report_error(String message, Object info) {
     	errorDetected = true;
     	StringBuilder msg = new StringBuilder(message);
-    	if (info instanceof Symbol)
+    	if (info instanceof Symbol) {
             msg.append (" na liniji ").append(((Symbol)info).left);
+            msg.append(": " + ((Symbol)info).value);
+        }
+
         log.error(msg.toString());
     }
 
@@ -115,6 +118,13 @@ nonterminal InterfaceImplList InterfaceImplList;
 nonterminal InterfaceName InterfaceName;
 nonterminal MethodBeforeFirstStmt MethodBeforeFirstStmt;
 nonterminal FunctionCall FunctionCall;
+nonterminal GlobalVarDecl GlobalVarDecl;
+nonterminal GlobalVarDeclChain GlobalVarDeclChain;
+nonterminal GlobalVarDeclIdent GlobalVarDeclIdent;
+nonterminal ClassFieldDeclList ClassFieldDeclList;
+nonterminal ClassFieldDecl ClassFieldDecl;
+nonterminal ClassFieldDeclChain ClassFieldDeclChain;
+nonterminal ClassFieldDeclIdent ClassFieldDeclIdent;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Obj Program, ProgName, Designator, MethodDecl, MethodTypeName, ConstValue, MethodSig, EnumName, ClassName, ClassDecl;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Expr, Factor, VarDeclList, ConstDecl;
@@ -130,7 +140,7 @@ GlobalDeclList ::= (GlobalDeclarations) GlobalDeclList:G1 GlobalDecl:G2 {: RESUL
 				(NoGlobalDecl) {: RESULT=new NoGlobalDecl(); :} /* epsilon */
 				;
 
-GlobalDecl ::= (VarGlobalDecl) VarDecl:V1 {: RESULT=new VarGlobalDecl(V1); RESULT.setLine(V1left); :}
+GlobalDecl ::= (VarGlobalDecl) GlobalVarDecl:G1 {: RESULT=new VarGlobalDecl(G1); RESULT.setLine(G1left); :}
 			|
 			(ConstGlobalDecl) ConstDecl:C1 {: RESULT=new ConstGlobalDecl(C1); RESULT.setLine(C1left); :}
 			|
@@ -140,6 +150,19 @@ GlobalDecl ::= (VarGlobalDecl) VarDecl:V1 {: RESULT=new VarGlobalDecl(V1); RESUL
 			|
 			(InterfaceGlobalDecl) InterfaceDecl:I1 {: RESULT=new InterfaceGlobalDecl(I1); RESULT.setLine(I1left); :}
 			;
+
+GlobalVarDecl ::= (GlobalVarDecl) Type:typeName GlobalVarDeclChain:G1 SEMI {: RESULT=new GlobalVarDecl(typeName, G1); RESULT.setLine(typeNameleft); :};
+
+GlobalVarDeclChain ::= (GlobalVarDeclarationChain) GlobalVarDeclChain:G1 COMMA GlobalVarDeclIdent:G2 {: RESULT=new GlobalVarDeclarationChain(G1, G2); RESULT.setLine(G1left); :}
+                    |
+                    (SingleGlobalVarDeclIdent) GlobalVarDeclIdent:G1 {: RESULT=new SingleGlobalVarDeclIdent(G1); RESULT.setLine(G1left); :}
+                    ;
+
+GlobalVarDeclIdent ::= (NoErrorGlobalVarDeclIdent) VarDeclIdent:V1 {: RESULT=new NoErrorGlobalVarDeclIdent(V1); RESULT.setLine(V1left); :}
+                    |
+                    (ErrorGlobalVarDeclIdent) error:e
+                    {: parser.report_info("Uspesan oporavak od greske pri deklaraciji globalne promenljive na liniji " + eleft, null); :} {: RESULT=new ErrorGlobalVarDeclIdent(); :}
+                    ;
 
 VarDeclList ::= (VarDeclarations) VarDeclList:V1 VarDecl:V2 {: RESULT=new VarDeclarations(V1, V2); RESULT.setLine(V1left); :}
 			|
@@ -156,10 +179,28 @@ VarDeclChain ::= (VarDeclarationsChain) VarDeclChain:V1 COMMA VarDeclIdent:V2 {:
 VarDeclIdent ::= (SimpleVarDeclIdent) IDENT:varName {: RESULT=new SimpleVarDeclIdent(varName); RESULT.setLine(varNameleft); :}
 			|
 			(ArrayVarDeclIdent) IDENT:varName LBRACKET RBRACKET {: RESULT=new ArrayVarDeclIdent(varName); RESULT.setLine(varNameleft); :}
-			|
-			(ErrorVarDecl) error:e
-            {: parser.report_info("Uspesan oporavak od greske pri deklaraciji promenljive na liniji " + eleft, null); :} {: RESULT=new ErrorVarDecl(); :}
 			;
+
+ClassFieldDeclList ::= (ClassFieldDeclarations) ClassFieldDeclList:C1 ClassFieldDecl:C2 {: RESULT=new ClassFieldDeclarations(C1, C2); RESULT.setLine(C1left); :}
+                |
+                (NoClassFieldDecl) {: RESULT=new NoClassFieldDecl(); :} /* epsilon */
+                |
+                (ErrorClassFieldDecl) error:e
+                {: parser.report_info("Uspesan oporavak od greske pri deklaraciji polja klase na liniji " + eleft, null); :} {: RESULT=new ErrorClassFieldDecl(); :}
+                ;
+
+ClassFieldDecl ::= (ClassFieldDecl) Type:typeName ClassFieldDeclChain:C1 SEMI {: RESULT=new ClassFieldDecl(typeName, C1); RESULT.setLine(typeNameleft); :};
+
+ClassFieldDeclChain ::= (ClassFieldDeclarationChain) ClassFieldDeclChain:C1 COMMA ClassFieldDeclIdent:C2 {: RESULT=new ClassFieldDeclarationChain(C1, C2); RESULT.setLine(C1left); :}
+                    |
+                    (ClassFieldDeclaration) ClassFieldDeclIdent:C1 {: RESULT=new ClassFieldDeclaration(C1); RESULT.setLine(C1left); :}
+                    ;
+
+ClassFieldDeclIdent ::= (NoErrorClassFieldDeclIdent) VarDeclIdent:V1 {: RESULT=new NoErrorClassFieldDeclIdent(V1); RESULT.setLine(V1left); :}
+                    |
+                    (ErrorClassFieldDeclIdent) error:e
+                    {: parser.report_info("Uspesan oporavak od greske pri deklaraciji polja klase na liniji " + eleft, null); :} {: RESULT=new ErrorClassFieldDeclIdent(); :}
+                    ;
 
 ConstDecl ::= (ConstDecl) CONST Type:typeName ConstDeclChain:C1 SEMI {: RESULT=new ConstDecl(typeName, C1); RESULT.setLine(typeNameleft); :};
 
@@ -195,9 +236,12 @@ Type ::= (Type) IDENT:typeName {: RESULT=new Type(typeName); RESULT.setLine(type
 
 ClassName ::= (ClassName) CLASS IDENT:name {: RESULT=new ClassName(name); RESULT.setLine(nameleft); :};
 
-ClassDecl ::= (ClassDecl) ClassName:C1 OptionalClassExt:O2 OptionalClassImpl:O3 LBRACE VarDeclList:V4 OptionalClassMethDecl:O5 RBRACE {: RESULT=new ClassDecl(C1, O2, O3, V4, O5); RESULT.setLine(C1left); :};
+ClassDecl ::= (ClassDecl) ClassName:C1 OptionalClassExt:O2 OptionalClassImpl:O3 LBRACE ClassFieldDeclList:C4 OptionalClassMethDecl:O5 RBRACE {: RESULT=new ClassDecl(C1, O2, O3, C4, O5); RESULT.setLine(C1left); :};
 
 OptionalClassExt ::= (ClassExt) EXTENDS Type:T1 {: RESULT=new ClassExt(T1); RESULT.setLine(T1left); :}
+                  |
+                  (ErrorClassExt) error:e
+                  {: parser.report_info("Uspesan oporavak od greske pri deklaraciji prosirenja natklase na liniji " + eleft, null); :} {: RESULT=new ErrorClassExt(); :}
                   |
                   (EmptyClassExt) {: RESULT=new EmptyClassExt(); :} /* epsilon */
                   ;

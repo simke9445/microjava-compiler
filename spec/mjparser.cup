@@ -32,8 +32,11 @@ parser code {:
     public void report_error(String message, Object info) {
     	errorDetected = true;
     	StringBuilder msg = new StringBuilder(message);
-    	if (info instanceof Symbol)
+    	if (info instanceof Symbol) {
             msg.append (" na liniji ").append(((Symbol)info).left);
+            msg.append(": " + ((Symbol)info).value);
+        }
+
         log.error(msg.toString());
     }
 
@@ -83,6 +86,8 @@ nonterminal InterfaceDecl, InterfaceMethodDeclList, InterfaceImpl;
 nonterminal InterfaceImplList, InterfaceName;
 nonterminal MethodBeforeFirstStmt;
 nonterminal FunctionCall;
+nonterminal GlobalVarDecl, GlobalVarDeclChain, GlobalVarDeclIdent;
+nonterminal ClassFieldDeclList, ClassFieldDecl, ClassFieldDeclChain, ClassFieldDeclIdent;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Obj Program, ProgName, Designator, MethodDecl, MethodTypeName, ConstValue, MethodSig, EnumName, ClassName, ClassDecl;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Expr, Factor, VarDeclList, ConstDecl;
@@ -98,7 +103,7 @@ GlobalDeclList ::= (GlobalDeclarations) GlobalDeclList GlobalDecl
 				(NoGlobalDecl) /* epsilon */
 				;
 
-GlobalDecl ::= (VarGlobalDecl) VarDecl
+GlobalDecl ::= (VarGlobalDecl) GlobalVarDecl
 			|
 			(ConstGlobalDecl) ConstDecl
 			|
@@ -108,6 +113,19 @@ GlobalDecl ::= (VarGlobalDecl) VarDecl
 			|
 			(InterfaceGlobalDecl) InterfaceDecl
 			;
+
+GlobalVarDecl ::= (GlobalVarDecl) Type:typeName GlobalVarDeclChain SEMI;
+
+GlobalVarDeclChain ::= (GlobalVarDeclarationChain) GlobalVarDeclChain COMMA GlobalVarDeclIdent
+                    |
+                    (SingleGlobalVarDeclIdent) GlobalVarDeclIdent
+                    ;
+
+GlobalVarDeclIdent ::= (NoErrorGlobalVarDeclIdent) VarDeclIdent
+                    |
+                    (ErrorGlobalVarDeclIdent) error:e
+                    {: parser.report_info("Uspesan oporavak od greske pri deklaraciji globalne promenljive na liniji " + eleft, null); :}
+                    ;
 
 VarDeclList ::= (VarDeclarations) VarDeclList VarDecl
 			|
@@ -124,10 +142,28 @@ VarDeclChain ::= (VarDeclarationsChain) VarDeclChain COMMA VarDeclIdent
 VarDeclIdent ::= (SimpleVarDeclIdent) IDENT:varName
 			|
 			(ArrayVarDeclIdent) IDENT:varName LBRACKET RBRACKET
-			|
-			(ErrorVarDecl) error:e
-            {: parser.report_info("Uspesan oporavak od greske pri deklaraciji promenljive na liniji " + eleft, null); :}
 			;
+
+ClassFieldDeclList ::= (ClassFieldDeclarations) ClassFieldDeclList ClassFieldDecl
+                |
+                (NoClassFieldDecl) /* epsilon */
+                |
+                (ErrorClassFieldDecl) error:e
+                {: parser.report_info("Uspesan oporavak od greske pri deklaraciji polja klase na liniji " + eleft, null); :}
+                ;
+
+ClassFieldDecl ::= (ClassFieldDecl) Type:typeName ClassFieldDeclChain SEMI;
+
+ClassFieldDeclChain ::= (ClassFieldDeclarationChain) ClassFieldDeclChain COMMA ClassFieldDeclIdent
+                    |
+                    (ClassFieldDeclaration) ClassFieldDeclIdent
+                    ;
+
+ClassFieldDeclIdent ::= (NoErrorClassFieldDeclIdent) VarDeclIdent
+                    |
+                    (ErrorClassFieldDeclIdent) error:e
+                    {: parser.report_info("Uspesan oporavak od greske pri deklaraciji polja klase na liniji " + eleft, null); :}
+                    ;
 
 ConstDecl ::= (ConstDecl) CONST Type:typeName ConstDeclChain SEMI;
 
@@ -163,9 +199,12 @@ Type ::= (Type) IDENT:typeName;
 
 ClassName ::= (ClassName) CLASS IDENT:name;
 
-ClassDecl ::= (ClassDecl) ClassName OptionalClassExt OptionalClassImpl LBRACE VarDeclList OptionalClassMethDecl RBRACE;
+ClassDecl ::= (ClassDecl) ClassName OptionalClassExt OptionalClassImpl LBRACE ClassFieldDeclList OptionalClassMethDecl RBRACE;
 
 OptionalClassExt ::= (ClassExt) EXTENDS Type
+                  |
+                  (ErrorClassExt) error:e
+                  {: parser.report_info("Uspesan oporavak od greske pri deklaraciji prosirenja natklase na liniji " + eleft, null); :}
                   |
                   (EmptyClassExt) /* epsilon */
                   ;

@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 30/11/2018 18:21:28
+// 30/11/2018 22:51:48
 
 
 package rs.ac.bg.etf.pp1.ast;
@@ -14,18 +14,18 @@ public class ClassDecl implements SyntaxNode {
     private ClassName ClassName;
     private OptionalClassExt OptionalClassExt;
     private OptionalClassImpl OptionalClassImpl;
-    private VarDeclList VarDeclList;
+    private ClassFieldDeclList ClassFieldDeclList;
     private OptionalClassMethDecl OptionalClassMethDecl;
 
-    public ClassDecl (ClassName ClassName, OptionalClassExt OptionalClassExt, OptionalClassImpl OptionalClassImpl, VarDeclList VarDeclList, OptionalClassMethDecl OptionalClassMethDecl) {
+    public ClassDecl (ClassName ClassName, OptionalClassExt OptionalClassExt, OptionalClassImpl OptionalClassImpl, ClassFieldDeclList ClassFieldDeclList, OptionalClassMethDecl OptionalClassMethDecl) {
         this.ClassName=ClassName;
         if(ClassName!=null) ClassName.setParent(this);
         this.OptionalClassExt=OptionalClassExt;
         if(OptionalClassExt!=null) OptionalClassExt.setParent(this);
         this.OptionalClassImpl=OptionalClassImpl;
         if(OptionalClassImpl!=null) OptionalClassImpl.setParent(this);
-        this.VarDeclList=VarDeclList;
-        if(VarDeclList!=null) VarDeclList.setParent(this);
+        this.ClassFieldDeclList=ClassFieldDeclList;
+        if(ClassFieldDeclList!=null) ClassFieldDeclList.setParent(this);
         this.OptionalClassMethDecl=OptionalClassMethDecl;
         if(OptionalClassMethDecl!=null) OptionalClassMethDecl.setParent(this);
     }
@@ -54,12 +54,12 @@ public class ClassDecl implements SyntaxNode {
         this.OptionalClassImpl=OptionalClassImpl;
     }
 
-    public VarDeclList getVarDeclList() {
-        return VarDeclList;
+    public ClassFieldDeclList getClassFieldDeclList() {
+        return ClassFieldDeclList;
     }
 
-    public void setVarDeclList(VarDeclList VarDeclList) {
-        this.VarDeclList=VarDeclList;
+    public void setClassFieldDeclList(ClassFieldDeclList ClassFieldDeclList) {
+        this.ClassFieldDeclList=ClassFieldDeclList;
     }
 
     public OptionalClassMethDecl getOptionalClassMethDecl() {
@@ -94,7 +94,7 @@ public class ClassDecl implements SyntaxNode {
         if(ClassName!=null) ClassName.accept(visitor);
         if(OptionalClassExt!=null) OptionalClassExt.accept(visitor);
         if(OptionalClassImpl!=null) OptionalClassImpl.accept(visitor);
-        if(VarDeclList!=null) VarDeclList.accept(visitor);
+        if(ClassFieldDeclList!=null) ClassFieldDeclList.accept(visitor);
         if(OptionalClassMethDecl!=null) OptionalClassMethDecl.accept(visitor);
     }
 
@@ -103,7 +103,7 @@ public class ClassDecl implements SyntaxNode {
         if(ClassName!=null) ClassName.traverseTopDown(visitor);
         if(OptionalClassExt!=null) OptionalClassExt.traverseTopDown(visitor);
         if(OptionalClassImpl!=null) OptionalClassImpl.traverseTopDown(visitor);
-        if(VarDeclList!=null) VarDeclList.traverseTopDown(visitor);
+        if(ClassFieldDeclList!=null) ClassFieldDeclList.traverseTopDown(visitor);
         if(OptionalClassMethDecl!=null) OptionalClassMethDecl.traverseTopDown(visitor);
     }
 
@@ -111,7 +111,7 @@ public class ClassDecl implements SyntaxNode {
         if(ClassName!=null) ClassName.traverseBottomUp(visitor);
         if(OptionalClassExt!=null) OptionalClassExt.traverseBottomUp(visitor);
         if(OptionalClassImpl!=null) OptionalClassImpl.traverseBottomUp(visitor);
-        if(VarDeclList!=null) VarDeclList.traverseBottomUp(visitor);
+        if(ClassFieldDeclList!=null) ClassFieldDeclList.traverseBottomUp(visitor);
         if(OptionalClassMethDecl!=null) OptionalClassMethDecl.traverseBottomUp(visitor);
         accept(visitor);
     }
@@ -139,8 +139,8 @@ public class ClassDecl implements SyntaxNode {
             buffer.append(tab+"  null");
         buffer.append("\n");
 
-        if(VarDeclList!=null)
-            buffer.append(VarDeclList.toString("  "+tab));
+        if(ClassFieldDeclList!=null)
+            buffer.append(ClassFieldDeclList.toString("  "+tab));
         else
             buffer.append(tab+"  null");
         buffer.append("\n");

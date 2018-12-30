@@ -1,51 +1,56 @@
 // generated with ast extension for cup
 // version 0.8
-// 30/11/2018 18:21:29
+// 30/11/2018 22:51:49
 
 
 package rs.ac.bg.etf.pp1.ast;
 
 public abstract class VisitorAdaptor implements Visitor { 
 
-    public void visit(Unmatched Unmatched) { }
-    public void visit(Mulop Mulop) { }
-    public void visit(InterfaceMethodDeclList InterfaceMethodDeclList) { }
-    public void visit(OptionalClassImpl OptionalClassImpl) { }
-    public void visit(Matched Matched) { }
-    public void visit(OptionalClassMethDecl OptionalClassMethDecl) { }
-    public void visit(Relop Relop) { }
-    public void visit(ConditionList ConditionList) { }
-    public void visit(FormalParamDecl FormalParamDecl) { }
-    public void visit(InterfaceImplList InterfaceImplList) { }
-    public void visit(StatementList StatementList) { }
-    public void visit(Addop Addop) { }
-    public void visit(EnumFieldList EnumFieldList) { }
-    public void visit(Factor Factor) { }
-    public void visit(CondTerm CondTerm) { }
-    public void visit(Designator Designator) { }
-    public void visit(Term Term) { }
-    public void visit(VarDeclIdent VarDeclIdent) { }
-    public void visit(ConstValue ConstValue) { }
-    public void visit(EnumField EnumField) { }
-    public void visit(IfCondition IfCondition) { }
-    public void visit(OptionalClassExt OptionalClassExt) { }
-    public void visit(ActualParamList ActualParamList) { }
-    public void visit(GlobalDeclList GlobalDeclList) { }
-    public void visit(VarDeclList VarDeclList) { }
-    public void visit(FormalParamList FormalParamList) { }
-    public void visit(Expr Expr) { }
-    public void visit(MethodTypeName MethodTypeName) { }
-    public void visit(DesignatorStatement DesignatorStatement) { }
-    public void visit(ActualPars ActualPars) { }
-    public void visit(OptionalCondition OptionalCondition) { }
-    public void visit(ConstDeclChain ConstDeclChain) { }
-    public void visit(OptionalDesignatorStatement OptionalDesignatorStatement) { }
-    public void visit(Statement Statement) { }
-    public void visit(CondFact CondFact) { }
-    public void visit(MethodDeclList MethodDeclList) { }
-    public void visit(VarDeclChain VarDeclChain) { }
-    public void visit(GlobalDecl GlobalDecl) { }
     public void visit(FormPars FormPars) { }
+    public void visit(ClassFieldDeclChain ClassFieldDeclChain) { }
+    public void visit(Factor Factor) { }
+    public void visit(OptionalClassExt OptionalClassExt) { }
+    public void visit(Statement Statement) { }
+    public void visit(EnumField EnumField) { }
+    public void visit(ConditionList ConditionList) { }
+    public void visit(Relop Relop) { }
+    public void visit(FormalParamList FormalParamList) { }
+    public void visit(GlobalDecl GlobalDecl) { }
+    public void visit(IfCondition IfCondition) { }
+    public void visit(Expr Expr) { }
+    public void visit(OptionalDesignatorStatement OptionalDesignatorStatement) { }
+    public void visit(MethodTypeName MethodTypeName) { }
+    public void visit(InterfaceImplList InterfaceImplList) { }
+    public void visit(Unmatched Unmatched) { }
+    public void visit(ActualParamList ActualParamList) { }
+    public void visit(OptionalClassMethDecl OptionalClassMethDecl) { }
+    public void visit(GlobalDeclList GlobalDeclList) { }
+    public void visit(Mulop Mulop) { }
+    public void visit(DesignatorStatement DesignatorStatement) { }
+    public void visit(VarDeclIdent VarDeclIdent) { }
+    public void visit(Addop Addop) { }
+    public void visit(StatementList StatementList) { }
+    public void visit(GlobalVarDeclIdent GlobalVarDeclIdent) { }
+    public void visit(ClassFieldDeclList ClassFieldDeclList) { }
+    public void visit(CondTerm CondTerm) { }
+    public void visit(FormalParamDecl FormalParamDecl) { }
+    public void visit(ActualPars ActualPars) { }
+    public void visit(OptionalClassImpl OptionalClassImpl) { }
+    public void visit(ConstDeclChain ConstDeclChain) { }
+    public void visit(VarDeclChain VarDeclChain) { }
+    public void visit(MethodDeclList MethodDeclList) { }
+    public void visit(ConstValue ConstValue) { }
+    public void visit(ClassFieldDeclIdent ClassFieldDeclIdent) { }
+    public void visit(GlobalVarDeclChain GlobalVarDeclChain) { }
+    public void visit(OptionalCondition OptionalCondition) { }
+    public void visit(Designator Designator) { }
+    public void visit(Matched Matched) { }
+    public void visit(VarDeclList VarDeclList) { }
+    public void visit(CondFact CondFact) { }
+    public void visit(InterfaceMethodDeclList InterfaceMethodDeclList) { }
+    public void visit(EnumFieldList EnumFieldList) { }
+    public void visit(Term Term) { }
     public void visit(LesserOrEqualRelop LesserOrEqualRelop) { visit(); }
     public void visit(GreaterOrEqualRelop GreaterOrEqualRelop) { visit(); }
     public void visit(LesserRelop LesserRelop) { visit(); }
@@ -147,6 +152,7 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(SingleInterfaceImpl SingleInterfaceImpl) { visit(); }
     public void visit(InterfaceImplementations InterfaceImplementations) { visit(); }
     public void visit(EmptyClassExt EmptyClassExt) { visit(); }
+    public void visit(ErrorClassExt ErrorClassExt) { visit(); }
     public void visit(ClassExt ClassExt) { visit(); }
     public void visit(ClassDecl ClassDecl) { visit(); }
     public void visit(ClassName ClassName) { visit(); }
@@ -164,7 +170,14 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(SingleConstDeclIdent SingleConstDeclIdent) { visit(); }
     public void visit(ConstDeclarationsChain ConstDeclarationsChain) { visit(); }
     public void visit(ConstDecl ConstDecl) { visit(); }
-    public void visit(ErrorVarDecl ErrorVarDecl) { visit(); }
+    public void visit(ErrorClassFieldDeclIdent ErrorClassFieldDeclIdent) { visit(); }
+    public void visit(NoErrorClassFieldDeclIdent NoErrorClassFieldDeclIdent) { visit(); }
+    public void visit(ClassFieldDeclaration ClassFieldDeclaration) { visit(); }
+    public void visit(ClassFieldDeclarationChain ClassFieldDeclarationChain) { visit(); }
+    public void visit(ClassFieldDecl ClassFieldDecl) { visit(); }
+    public void visit(ErrorClassFieldDecl ErrorClassFieldDecl) { visit(); }
+    public void visit(NoClassFieldDecl NoClassFieldDecl) { visit(); }
+    public void visit(ClassFieldDeclarations ClassFieldDeclarations) { visit(); }
     public void visit(ArrayVarDeclIdent ArrayVarDeclIdent) { visit(); }
     public void visit(SimpleVarDeclIdent SimpleVarDeclIdent) { visit(); }
     public void visit(SingleVarDeclIdent SingleVarDeclIdent) { visit(); }
@@ -172,6 +185,11 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(VarDecl VarDecl) { visit(); }
     public void visit(NoVarDecl NoVarDecl) { visit(); }
     public void visit(VarDeclarations VarDeclarations) { visit(); }
+    public void visit(ErrorGlobalVarDeclIdent ErrorGlobalVarDeclIdent) { visit(); }
+    public void visit(NoErrorGlobalVarDeclIdent NoErrorGlobalVarDeclIdent) { visit(); }
+    public void visit(SingleGlobalVarDeclIdent SingleGlobalVarDeclIdent) { visit(); }
+    public void visit(GlobalVarDeclarationChain GlobalVarDeclarationChain) { visit(); }
+    public void visit(GlobalVarDecl GlobalVarDecl) { visit(); }
     public void visit(InterfaceGlobalDecl InterfaceGlobalDecl) { visit(); }
     public void visit(ClassGlobalDecl ClassGlobalDecl) { visit(); }
     public void visit(EnumGlobalDecl EnumGlobalDecl) { visit(); }

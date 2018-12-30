@@ -2,6 +2,8 @@
 
 program test_303
 
+int a char, int b;
+int a char;
 const int cinilac = 4, delilac = 3;
 enum VrstaPredmeta{ SFERA, KVADAR }
 interface ITest {
@@ -13,16 +15,20 @@ interface IPredmet
 	int Q();
 	int test123(int a, int b);
 }
-class Predmet implements IPredmet
+class Predmet extends implements IPredmet
 {
+    int a char b;
 	int tezina;
+	int int
 	VrstaPredmeta vrsta;
-
+	bool testBool;
+	int imagine;
+	extends
 	{
-        int test123(int a, int b) {
+        int test123(int a, int b int int) {
             return 0;
         }
-		void postaviTezinu(int tezina) {this.tezina = tezina;}
+		void postaviTezinu(int tezina, extends, int a) {this.tezina = tezina;}
 		void ucitajTezinu() { read(tezina); }
 		int zapremina() { return 0;}
 		int Q() {return zapremina() * tezina;}
@@ -30,7 +36,7 @@ class Predmet implements IPredmet
 	}
 }
 
-class Sfera extends Predmet implements ITest
+class Sfera extends Predmet
 {
 	int r;
 	{
