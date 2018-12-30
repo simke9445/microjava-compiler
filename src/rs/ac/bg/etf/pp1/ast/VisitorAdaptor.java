@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 26/11/2018 14:48:52
+// 29/11/2018 3:12:52
 
 
 package rs.ac.bg.etf.pp1.ast;
@@ -9,10 +9,14 @@ public abstract class VisitorAdaptor implements Visitor {
 
     public void visit(Unmatched Unmatched) { }
     public void visit(Mulop Mulop) { }
+    public void visit(InterfaceMethodDeclList InterfaceMethodDeclList) { }
+    public void visit(OptionalClassImpl OptionalClassImpl) { }
     public void visit(Matched Matched) { }
+    public void visit(OptionalClassMethDecl OptionalClassMethDecl) { }
     public void visit(Relop Relop) { }
     public void visit(ConditionList ConditionList) { }
     public void visit(FormalParamDecl FormalParamDecl) { }
+    public void visit(InterfaceImplList InterfaceImplList) { }
     public void visit(StatementList StatementList) { }
     public void visit(Addop Addop) { }
     public void visit(EnumFieldList EnumFieldList) { }
@@ -24,6 +28,7 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(ConstValue ConstValue) { }
     public void visit(EnumField EnumField) { }
     public void visit(IfCondition IfCondition) { }
+    public void visit(OptionalClassExt OptionalClassExt) { }
     public void visit(ActualParamList ActualParamList) { }
     public void visit(GlobalDeclList GlobalDeclList) { }
     public void visit(VarDeclList VarDeclList) { }
@@ -75,6 +80,7 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(NoActuals NoActuals) { visit(); }
     public void visit(Actuals Actuals) { visit(); }
     public void visit(PreActualPars PreActualPars) { visit(); }
+    public void visit(FunctionCall FunctionCall) { visit(); }
     public void visit(FuncCall FuncCall) { visit(); }
     public void visit(Var Var) { visit(); }
     public void visit(ArrayAlloc ArrayAlloc) { visit(); }
@@ -126,8 +132,23 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(VoidMethodTypeName VoidMethodTypeName) { visit(); }
     public void visit(MethodSig MethodSig) { visit(); }
     public void visit(MethodDecl MethodDecl) { visit(); }
+    public void visit(MethodBeforeFirstStmt MethodBeforeFirstStmt) { visit(); }
     public void visit(NoMethodDecl NoMethodDecl) { visit(); }
     public void visit(MethodDeclarations MethodDeclarations) { visit(); }
+    public void visit(NoInterfaceMethodDecl NoInterfaceMethodDecl) { visit(); }
+    public void visit(InterfaceMethodDeclarations InterfaceMethodDeclarations) { visit(); }
+    public void visit(InterfaceDecl InterfaceDecl) { visit(); }
+    public void visit(InterfaceName InterfaceName) { visit(); }
+    public void visit(EmptyClassMethDecl EmptyClassMethDecl) { visit(); }
+    public void visit(ClassMethDecl ClassMethDecl) { visit(); }
+    public void visit(EmptyClassImpl EmptyClassImpl) { visit(); }
+    public void visit(ClassImpl ClassImpl) { visit(); }
+    public void visit(SingleInterfaceImpl SingleInterfaceImpl) { visit(); }
+    public void visit(InterfaceImplementations InterfaceImplementations) { visit(); }
+    public void visit(EmptyClassExt EmptyClassExt) { visit(); }
+    public void visit(ClassExt ClassExt) { visit(); }
+    public void visit(ClassDecl ClassDecl) { visit(); }
+    public void visit(ClassName ClassName) { visit(); }
     public void visit(Type Type) { visit(); }
     public void visit(ValueEnumField ValueEnumField) { visit(); }
     public void visit(DefaultEnumField DefaultEnumField) { visit(); }
@@ -150,6 +171,8 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(VarDecl VarDecl) { visit(); }
     public void visit(NoVarDecl NoVarDecl) { visit(); }
     public void visit(VarDeclarations VarDeclarations) { visit(); }
+    public void visit(InterfaceGlobalDecl InterfaceGlobalDecl) { visit(); }
+    public void visit(ClassGlobalDecl ClassGlobalDecl) { visit(); }
     public void visit(EnumGlobalDecl EnumGlobalDecl) { visit(); }
     public void visit(ConstGlobalDecl ConstGlobalDecl) { visit(); }
     public void visit(VarGlobalDecl VarGlobalDecl) { visit(); }

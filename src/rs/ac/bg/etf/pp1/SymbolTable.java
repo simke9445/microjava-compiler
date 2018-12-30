@@ -8,6 +8,8 @@ public class SymbolTable extends Tab {
 
 	public static final Struct boolType = new Struct(Struct.Bool);
 
+	public static final String THIS_OBJ_NAME = "this";
+
 	public static void completeInit() {
 		SymbolTable.init();
 		SymbolTable.currentScope.addToLocals(new Obj(Obj.Type, "bool", boolType));

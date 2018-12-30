@@ -56,9 +56,9 @@ public class MJParserTest {
 //			// TODO: Add Global Var Decl error check (remove VarDecl check)
 //			// TODO: Write specific test cases for each and every errornous case
 //
-			ExtDumpStateVisitor dumpStateVisitor = new ExtDumpStateVisitor();
-
-	        Tab.dump(dumpStateVisitor);
+//			ExtDumpStateVisitor dumpStateVisitor = new ExtDumpStateVisitor();
+//
+//	        Tab.dump(dumpStateVisitor);
 
 	        if (!p.errorDetected && semanticCheck.passed()) {
 	        	File objFile = new File(args[1]);
@@ -67,9 +67,11 @@ public class MJParserTest {
 	        		objFile.delete();
 
 	        	// Code generation...
-	        	CodeGenerator codeGenerator = new CodeGenerator();
-	        	prog.traverseBottomUp(codeGenerator);
-	        	Code.dataSize = semanticCheck.nVars;
+				Code.dataSize = semanticCheck.nVars;
+
+				CodeGenerator codeGenerator = new CodeGenerator();
+				prog.traverseBottomUp(codeGenerator);
+
 	        	Code.mainPc = codeGenerator.getMainPc();
 	        	Code.write(new FileOutputStream(objFile));
 	        	log.info("Parsiranje uspesno zavrseno!");

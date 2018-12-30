@@ -63,6 +63,7 @@ terminal String IDENT;
 terminal IF, ELSE;
 terminal OR, AND, GREATER, LESSER, IS_EQUAL, NOT_EQUAL, GREATER_OR_EQUAL, LESSER_OR_EQUAL;
 terminal FOR, BREAK, CONTINUE;
+terminal CLASS, EXTENDS, IMPLEMENTS, INTERFACE;
 
 nonterminal MethodDeclList MethodDeclList;
 nonterminal VarDecl VarDecl;
@@ -104,8 +105,17 @@ nonterminal ForStatement ForStatement;
 nonterminal ElseCondition ElseCondition;
 nonterminal ConditionList ConditionList;
 nonterminal PreCondition PreCondition;
+nonterminal OptionalClassExt OptionalClassExt;
+nonterminal OptionalClassImpl OptionalClassImpl;
+nonterminal OptionalClassMethDecl OptionalClassMethDecl;
+nonterminal InterfaceDecl InterfaceDecl;
+nonterminal InterfaceMethodDeclList InterfaceMethodDeclList;
+nonterminal InterfaceImplList InterfaceImplList;
+nonterminal InterfaceName InterfaceName;
+nonterminal MethodBeforeFirstStmt MethodBeforeFirstStmt;
+nonterminal FunctionCall FunctionCall;
 
-nonterminal rs.etf.pp1.symboltable.concepts.Obj Program, ProgName, Designator, MethodDecl, MethodTypeName, ConstValue, MethodSig, EnumName;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj Program, ProgName, Designator, MethodDecl, MethodTypeName, ConstValue, MethodSig, EnumName, ClassName, ClassDecl;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Expr, Factor, VarDeclList, ConstDecl;
 
 Program ::= (Program) PROG ProgName:p GlobalDeclList:G1 LBRACE MethodDeclList:M2 RBRACE {: RESULT=new Program(p, G1, M2); RESULT.setLine(pleft); :}
@@ -124,6 +134,10 @@ GlobalDecl ::= (VarGlobalDecl) VarDecl:V1 {: RESULT=new VarGlobalDecl(V1); RESUL
 			(ConstGlobalDecl) ConstDecl:C1 {: RESULT=new ConstGlobalDecl(C1); RESULT.setLine(C1left); :}
 			|
 			(EnumGlobalDecl) EnumDecl:E1 {: RESULT=new EnumGlobalDecl(E1); RESULT.setLine(E1left); :}
+			|
+			(ClassGlobalDecl) ClassDecl:C1 {: RESULT=new ClassGlobalDecl(C1); RESULT.setLine(C1left); :}
+			|
+			(InterfaceGlobalDecl) InterfaceDecl:I1 {: RESULT=new InterfaceGlobalDecl(I1); RESULT.setLine(I1left); :}
 			;
 
 VarDeclList ::= (VarDeclarations) VarDeclList:V1 VarDecl:V2 {: RESULT=new VarDeclarations(V1, V2); RESULT.setLine(V1left); :}
@@ -176,15 +190,49 @@ EnumField ::= (DefaultEnumField) IDENT:name {: RESULT=new DefaultEnumField(name)
             (ValueEnumField) IDENT:name EQUAL NUMBER:value {: RESULT=new ValueEnumField(name, value); RESULT.setLine(nameleft); :}
             ;
 
-Type ::= (Type) IDENT:typeName {: RESULT=new Type(typeName); RESULT.setLine(typeNameleft); :}
-;
+Type ::= (Type) IDENT:typeName {: RESULT=new Type(typeName); RESULT.setLine(typeNameleft); :};
+
+ClassName ::= (ClassName) CLASS IDENT:name {: RESULT=new ClassName(name); RESULT.setLine(nameleft); :};
+
+ClassDecl ::= (ClassDecl) ClassName:C1 OptionalClassExt:O2 OptionalClassImpl:O3 LBRACE VarDeclList:V4 OptionalClassMethDecl:O5 RBRACE {: RESULT=new ClassDecl(C1, O2, O3, V4, O5); RESULT.setLine(C1left); :};
+
+OptionalClassExt ::= (ClassExt) EXTENDS Type:T1 {: RESULT=new ClassExt(T1); RESULT.setLine(T1left); :}
+                  |
+                  (EmptyClassExt) {: RESULT=new EmptyClassExt(); :} /* epsilon */
+                  ;
+
+InterfaceImplList ::= (InterfaceImplementations) InterfaceImplList:I1 COMMA Type:T2 {: RESULT=new InterfaceImplementations(I1, T2); RESULT.setLine(I1left); :}
+            |
+            (SingleInterfaceImpl) Type:T1 {: RESULT=new SingleInterfaceImpl(T1); RESULT.setLine(T1left); :}
+            ;
+
+OptionalClassImpl ::= (ClassImpl) IMPLEMENTS InterfaceImplList:I1 {: RESULT=new ClassImpl(I1); RESULT.setLine(I1left); :}
+                    |
+                    (EmptyClassImpl) {: RESULT=new EmptyClassImpl(); :} /* epsilon */
+                    ;
+
+OptionalClassMethDecl ::= (ClassMethDecl) LBRACE MethodDeclList:M1 RBRACE {: RESULT=new ClassMethDecl(M1); RESULT.setLine(M1left); :}
+                        |
+                        (EmptyClassMethDecl) {: RESULT=new EmptyClassMethDecl(); :} /* epsilon */
+                        ;
+
+InterfaceName ::= (InterfaceName) INTERFACE IDENT:name {: RESULT=new InterfaceName(name); RESULT.setLine(nameleft); :};
+
+InterfaceDecl ::= (InterfaceDecl) InterfaceName:I1 LBRACE InterfaceMethodDeclList:I2 RBRACE {: RESULT=new InterfaceDecl(I1, I2); RESULT.setLine(I1left); :};
+
+InterfaceMethodDeclList ::= (InterfaceMethodDeclarations) InterfaceMethodDeclList:I1 MethodSig:M2 SEMI {: RESULT=new InterfaceMethodDeclarations(I1, M2); RESULT.setLine(I1left); :}
+                        |
+                        (NoInterfaceMethodDecl) {: RESULT=new NoInterfaceMethodDecl(); :} /* epsilon */
+                        ;
 
 MethodDeclList ::= (MethodDeclarations) MethodDeclList:M1 MethodDecl:M2 {: RESULT=new MethodDeclarations(M1, M2); RESULT.setLine(M1left); :}
 					|
 					(NoMethodDecl) {: RESULT=new NoMethodDecl(); :}/* epsilon */
 					;
 
-MethodDecl ::= (MethodDecl) MethodSig:M1 VarDeclList:V2 LBRACE StatementList:S3 RBRACE {: RESULT=new MethodDecl(M1, V2, S3); RESULT.setLine(M1left); :}
+MethodBeforeFirstStmt ::= (MethodBeforeFirstStmt) {: RESULT=new MethodBeforeFirstStmt(); :} /* epsilon */;
+
+MethodDecl ::= (MethodDecl) MethodSig:M1 VarDeclList:V2 LBRACE MethodBeforeFirstStmt:M3 StatementList:S4 RBRACE {: RESULT=new MethodDecl(M1, V2, M3, S4); RESULT.setLine(M1left); :}
 			   ;
 
 MethodSig ::= (MethodSig) MethodTypeName:M1 LPAREN FormPars:F2 RPAREN {: RESULT=new MethodSig(M1, F2); RESULT.setLine(M1left); :}
@@ -229,7 +277,7 @@ Unmatched ::= (UnmatchedIf) IF IfCondition:I1 Statement:S2 {: RESULT=new Unmatch
 
 DesignatorStatement ::= (Assignment) Designator:dest EQUAL Expr:e {: RESULT=new Assignment(dest, e); RESULT.setLine(destleft); :}
 					  	|
-					  	(ProcCall) Designator:func LPAREN PreActualPars:P1 ActualPars:A2 RPAREN {: RESULT=new ProcCall(func, P1, A2); RESULT.setLine(funcleft); :}
+					  	(ProcCall) FunctionCall:F1 {: RESULT=new ProcCall(F1); RESULT.setLine(F1left); :}
 						|
 						(Increment) Designator:D1 INCREMENT {: RESULT=new Increment(D1); RESULT.setLine(D1left); :}
 						|
@@ -298,8 +346,10 @@ Factor ::= (ConstValFactor) ConstValue:C1 {: RESULT=new ConstValFactor(C1); RESU
 			|
 		   (Var) Designator:d {: RESULT=new Var(d); RESULT.setLine(dleft); :}
 		    |
-		   (FuncCall) Designator:func LPAREN PreActualPars:P1 ActualPars:A2 RPAREN {: RESULT=new FuncCall(func, P1, A2); RESULT.setLine(funcleft); :}
+		   (FuncCall) FunctionCall:F1 {: RESULT=new FuncCall(F1); RESULT.setLine(F1left); :}
 		   ;
+
+FunctionCall ::= (FunctionCall) Designator:func LPAREN PreActualPars:P1 ActualPars:A2 RPAREN {: RESULT=new FunctionCall(func, P1, A2); RESULT.setLine(funcleft); :};
 
 PreActualPars ::= (PreActualPars) {: RESULT=new PreActualPars(); :} /* epsilon */
 				;

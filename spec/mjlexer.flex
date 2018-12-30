@@ -36,6 +36,10 @@ import java_cup.runtime.Symbol;
 "\r\n" 	{ }
 "\f" 	{ }
 
+"interface" { return new_symbol(sym.INTERFACE, yytext()); }
+"implements" { return new_symbol(sym.IMPLEMENTS, yytext()); }
+"extends"   { return new_symbol(sym.EXTENDS, yytext()); }
+"class"     { return new_symbol(sym.CLASS, yytext()); }
 "const"     { return new_symbol(sym.CONST, yytext()); }
 "continue"  { return new_symbol(sym.CONTINUE, yytext()); }
 "for"       { return new_symbol(sym.FOR, yytext()); }

@@ -63,6 +63,7 @@ terminal String IDENT;
 terminal IF, ELSE;
 terminal OR, AND, GREATER, LESSER, IS_EQUAL, NOT_EQUAL, GREATER_OR_EQUAL, LESSER_OR_EQUAL;
 terminal FOR, BREAK, CONTINUE;
+terminal CLASS, EXTENDS, IMPLEMENTS, INTERFACE;
 
 nonterminal MethodDeclList, VarDecl;
 nonterminal FormalParamList, FormalParamDecl, FormPars, ActualPars, ActualParamList, PreActualPars, ActualPar;
@@ -77,8 +78,13 @@ nonterminal EnumDecl, EnumFieldList, EnumField;
 nonterminal OptionalDesignatorStatement, OptionalCondition;
 nonterminal ForPreCondition, ForPreDesignator, ForPostDesignator, ForStatement;
 nonterminal ElseCondition, ConditionList, PreCondition;
+nonterminal OptionalClassExt, OptionalClassImpl, OptionalClassMethDecl;
+nonterminal InterfaceDecl, InterfaceMethodDeclList;
+nonterminal InterfaceImplList, InterfaceName;
+nonterminal MethodBeforeFirstStmt;
+nonterminal FunctionCall;
 
-nonterminal rs.etf.pp1.symboltable.concepts.Obj Program, ProgName, Designator, MethodDecl, MethodTypeName, ConstValue, MethodSig, EnumName;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj Program, ProgName, Designator, MethodDecl, MethodTypeName, ConstValue, MethodSig, EnumName, ClassName, ClassDecl;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Expr, Factor, VarDeclList, ConstDecl;
 
 Program ::= (Program) PROG ProgName:p GlobalDeclList LBRACE MethodDeclList RBRACE
@@ -97,6 +103,10 @@ GlobalDecl ::= (VarGlobalDecl) VarDecl
 			(ConstGlobalDecl) ConstDecl
 			|
 			(EnumGlobalDecl) EnumDecl
+			|
+			(ClassGlobalDecl) ClassDecl
+			|
+			(InterfaceGlobalDecl) InterfaceDecl
 			;
 
 VarDeclList ::= (VarDeclarations) VarDeclList VarDecl
@@ -149,15 +159,49 @@ EnumField ::= (DefaultEnumField) IDENT:name
             (ValueEnumField) IDENT:name EQUAL NUMBER:value
             ;
 
-Type ::= (Type) IDENT:typeName
-;
+Type ::= (Type) IDENT:typeName;
+
+ClassName ::= (ClassName) CLASS IDENT:name;
+
+ClassDecl ::= (ClassDecl) ClassName OptionalClassExt OptionalClassImpl LBRACE VarDeclList OptionalClassMethDecl RBRACE;
+
+OptionalClassExt ::= (ClassExt) EXTENDS Type
+                  |
+                  (EmptyClassExt) /* epsilon */
+                  ;
+
+InterfaceImplList ::= (InterfaceImplementations) InterfaceImplList COMMA Type
+            |
+            (SingleInterfaceImpl) Type
+            ;
+
+OptionalClassImpl ::= (ClassImpl) IMPLEMENTS InterfaceImplList
+                    |
+                    (EmptyClassImpl) /* epsilon */
+                    ;
+
+OptionalClassMethDecl ::= (ClassMethDecl) LBRACE MethodDeclList RBRACE
+                        |
+                        (EmptyClassMethDecl) /* epsilon */
+                        ;
+
+InterfaceName ::= (InterfaceName) INTERFACE IDENT:name;
+
+InterfaceDecl ::= (InterfaceDecl) InterfaceName LBRACE InterfaceMethodDeclList RBRACE;
+
+InterfaceMethodDeclList ::= (InterfaceMethodDeclarations) InterfaceMethodDeclList MethodSig SEMI
+                        |
+                        (NoInterfaceMethodDecl) /* epsilon */
+                        ;
 
 MethodDeclList ::= (MethodDeclarations) MethodDeclList MethodDecl
 					|
 					(NoMethodDecl)/* epsilon */
 					;
 
-MethodDecl ::= (MethodDecl) MethodSig VarDeclList LBRACE StatementList RBRACE
+MethodBeforeFirstStmt ::= (MethodBeforeFirstStmt) /* epsilon */;
+
+MethodDecl ::= (MethodDecl) MethodSig VarDeclList LBRACE MethodBeforeFirstStmt StatementList RBRACE
 			   ;
 
 MethodSig ::= (MethodSig) MethodTypeName LPAREN FormPars RPAREN
@@ -202,7 +246,7 @@ Unmatched ::= (UnmatchedIf) IF IfCondition Statement
 
 DesignatorStatement ::= (Assignment) Designator:dest EQUAL Expr:e
 					  	|
-					  	(ProcCall) Designator:func LPAREN PreActualPars ActualPars RPAREN
+					  	(ProcCall) FunctionCall
 						|
 						(Increment) Designator INCREMENT
 						|
@@ -271,8 +315,10 @@ Factor ::= (ConstValFactor) ConstValue
 			|
 		   (Var) Designator:d
 		    |
-		   (FuncCall) Designator:func LPAREN PreActualPars ActualPars RPAREN
+		   (FuncCall) FunctionCall
 		   ;
+
+FunctionCall ::= (FunctionCall) Designator:func LPAREN PreActualPars ActualPars RPAREN;
 
 PreActualPars ::= (PreActualPars) /* epsilon */
 				;

@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 26/11/2018 14:48:52
+// 29/11/2018 3:12:52
 
 
 package rs.ac.bg.etf.pp1.ast;
@@ -9,10 +9,14 @@ public interface Visitor {
 
     public void visit(Unmatched Unmatched);
     public void visit(Mulop Mulop);
+    public void visit(InterfaceMethodDeclList InterfaceMethodDeclList);
+    public void visit(OptionalClassImpl OptionalClassImpl);
     public void visit(Matched Matched);
+    public void visit(OptionalClassMethDecl OptionalClassMethDecl);
     public void visit(Relop Relop);
     public void visit(ConditionList ConditionList);
     public void visit(FormalParamDecl FormalParamDecl);
+    public void visit(InterfaceImplList InterfaceImplList);
     public void visit(StatementList StatementList);
     public void visit(Addop Addop);
     public void visit(EnumFieldList EnumFieldList);
@@ -24,6 +28,7 @@ public interface Visitor {
     public void visit(ConstValue ConstValue);
     public void visit(EnumField EnumField);
     public void visit(IfCondition IfCondition);
+    public void visit(OptionalClassExt OptionalClassExt);
     public void visit(ActualParamList ActualParamList);
     public void visit(GlobalDeclList GlobalDeclList);
     public void visit(VarDeclList VarDeclList);
@@ -75,6 +80,7 @@ public interface Visitor {
     public void visit(NoActuals NoActuals);
     public void visit(Actuals Actuals);
     public void visit(PreActualPars PreActualPars);
+    public void visit(FunctionCall FunctionCall);
     public void visit(FuncCall FuncCall);
     public void visit(Var Var);
     public void visit(ArrayAlloc ArrayAlloc);
@@ -126,8 +132,23 @@ public interface Visitor {
     public void visit(VoidMethodTypeName VoidMethodTypeName);
     public void visit(MethodSig MethodSig);
     public void visit(MethodDecl MethodDecl);
+    public void visit(MethodBeforeFirstStmt MethodBeforeFirstStmt);
     public void visit(NoMethodDecl NoMethodDecl);
     public void visit(MethodDeclarations MethodDeclarations);
+    public void visit(NoInterfaceMethodDecl NoInterfaceMethodDecl);
+    public void visit(InterfaceMethodDeclarations InterfaceMethodDeclarations);
+    public void visit(InterfaceDecl InterfaceDecl);
+    public void visit(InterfaceName InterfaceName);
+    public void visit(EmptyClassMethDecl EmptyClassMethDecl);
+    public void visit(ClassMethDecl ClassMethDecl);
+    public void visit(EmptyClassImpl EmptyClassImpl);
+    public void visit(ClassImpl ClassImpl);
+    public void visit(SingleInterfaceImpl SingleInterfaceImpl);
+    public void visit(InterfaceImplementations InterfaceImplementations);
+    public void visit(EmptyClassExt EmptyClassExt);
+    public void visit(ClassExt ClassExt);
+    public void visit(ClassDecl ClassDecl);
+    public void visit(ClassName ClassName);
     public void visit(Type Type);
     public void visit(ValueEnumField ValueEnumField);
     public void visit(DefaultEnumField DefaultEnumField);
@@ -150,6 +171,8 @@ public interface Visitor {
     public void visit(VarDecl VarDecl);
     public void visit(NoVarDecl NoVarDecl);
     public void visit(VarDeclarations VarDeclarations);
+    public void visit(InterfaceGlobalDecl InterfaceGlobalDecl);
+    public void visit(ClassGlobalDecl ClassGlobalDecl);
     public void visit(EnumGlobalDecl EnumGlobalDecl);
     public void visit(ConstGlobalDecl ConstGlobalDecl);
     public void visit(VarGlobalDecl VarGlobalDecl);
