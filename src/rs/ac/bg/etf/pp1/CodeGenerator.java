@@ -207,6 +207,21 @@ public class CodeGenerator extends VisitorAdaptor {
         condFactFixupAdrs.add(Code.pc - 2);
     }
 
+    private void updateValueByOne(Designator designator, int opCode) {
+        if (designator instanceof ArrayDesignator) {
+            Code.put(Code.dup2);
+        }
+
+        if (designator instanceof  FieldDesignator) {
+            Code.put(Code.dup);
+        }
+
+        Code.load(designator.obj);
+        Code.loadConst(1);
+        Code.put(opCode);
+        Code.store(designator.obj);
+    }
+
     public void visit(Alloc alloc) {
         // new has it's arg in number of bytes, and our word
         // size is 4 bytes
@@ -317,17 +332,11 @@ public class CodeGenerator extends VisitorAdaptor {
     }
 
     public void visit(Increment inc) {
-        Code.load(inc.getDesignator().obj);
-        Code.loadConst(1);
-        Code.put(Code.add);
-        Code.store(inc.getDesignator().obj);
+        this.updateValueByOne(inc.getDesignator(), Code.add);
     }
 
     public void visit(Decrement dec) {
-        Code.load(dec.getDesignator().obj);
-        Code.loadConst(1);
-        Code.put(Code.sub);
-        Code.store(dec.getDesignator().obj);
+        this.updateValueByOne(dec.getDesignator(), Code.sub);
     }
 
     public void visit(Var var) {

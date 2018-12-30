@@ -4,10 +4,14 @@ program test_303
 
 const int cinilac = 4, delilac = 3;
 enum VrstaPredmeta{ SFERA, KVADAR }
+interface ITest {
+    int test1234();
+}
 interface IPredmet
 {
 	int zapremina();
 	int Q();
+	int test123(int a, int b);
 }
 class Predmet implements IPredmet
 {
@@ -15,6 +19,9 @@ class Predmet implements IPredmet
 	VrstaPredmeta vrsta;
 
 	{
+        int test123(int a, int b) {
+            return 0;
+        }
 		void postaviTezinu(int tezina) {this.tezina = tezina;}
 		void ucitajTezinu() { read(tezina); }
 		int zapremina() { return 0;}
@@ -23,10 +30,11 @@ class Predmet implements IPredmet
 	}
 }
 
-class Sfera extends Predmet
+class Sfera extends Predmet implements ITest
 {
 	int r;
 	{
+	    int test1234() { return 0; }
 		void postaviTezinu(int tezina) {this.tezina = tezina; vrsta = VrstaPredmeta.SFERA;}
 		void postaviPoluprecnik(int r) {this.r = r; postaviVrstu(VrstaPredmeta.SFERA);}
 		int zapremina()
@@ -56,6 +64,11 @@ class Kvadar extends Predmet
 	}
 }
 
+class Test {
+    int a[];
+    int b;
+}
+
 int zapreminaK, zapreminaS;
 int tezinaK, tezinaS;
 {
@@ -69,7 +82,7 @@ int tezinaK, tezinaS;
         print(eol);
 	}
 
-	void main() Predmet predmeti[]; IPredmet interPredmeti[]; int i; Sfera s1, s2, s3; Kvadar k1, k2, k3; int t;
+	void main() Predmet predmeti[]; Test test; IPredmet interPredmeti[]; int i; Sfera s1, s2, s3; Kvadar k1, k2, k3; int t;
 	{
 
 		predmeti = new Predmet[6];
@@ -123,6 +136,20 @@ int tezinaK, tezinaS;
 			tezinaK = tezinaK + predmeti[i - 1].Q();
 			ispis(predmeti[i - 1]);
 		}
+
+		test = new Test;
+
+        if (test == null) {
+            test.b--;
+            test.a = new int[5];
+            test.a[0]++;
+            i = 0;
+            i++;
+            print(test.b);
+            print(test.a[0]);
+            print(i);
+            print(eol);
+        }
 
 		print(zapreminaS); print(eol);
 		print(zapreminaK); print(eol);

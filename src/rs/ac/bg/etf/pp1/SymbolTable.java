@@ -4,10 +4,7 @@ import rs.etf.pp1.symboltable.Tab;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,20 +17,17 @@ public class SymbolTable extends Tab {
 	private static Map<Struct, List<Obj>> classToMethodsMap = new HashMap<>();
 
 	private static List<Obj> getParentClassMethods(Struct classStruct) {
-		List<Obj> parentClassMethods = new ArrayList<>();
-
 		if (classStruct == null) {
-			return parentClassMethods;
+			return new ArrayList<>();
 		}
 
 		return Stream.concat(
-				classToMethodsMap.get(classStruct).stream(),
-				getParentClassMethods(classStruct.getElemType()).stream())
-			.collect(Collectors.toList());
+					classToMethodsMap.get(classStruct).stream(),
+					getParentClassMethods(classStruct.getElemType()).stream()
+				).collect(Collectors.toList());
 	}
 
 	public static void addClass(Struct classStruct) {
-		// fill it with all parent methods first
 		classToMethodsMap.put(classStruct, new ArrayList<>());
 	}
 
@@ -42,8 +36,14 @@ public class SymbolTable extends Tab {
 	}
 
 	public static void chainParentMethods(Struct classStruct) {
-		classToMethodsMap.get(classStruct)
-				.addAll(getParentClassMethods(classStruct.getElemType()));
+		getParentClassMethods(classStruct.getElemType()).forEach(method -> {
+			if (classToMethodsMap.get(classStruct)
+					.stream()
+					.noneMatch(x -> x.getName().equals(method.getName()))
+			) {
+				classToMethodsMap.get(classStruct).add(method);
+			}
+		});
 	}
 
 	public static List<Obj> getClassMethods(Struct classStruct) {

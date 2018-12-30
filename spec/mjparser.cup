@@ -79,7 +79,7 @@ nonterminal OptionalDesignatorStatement, OptionalCondition;
 nonterminal ForPreCondition, ForPreDesignator, ForPostDesignator, ForStatement;
 nonterminal ElseCondition, ConditionList, PreCondition;
 nonterminal OptionalClassExt, OptionalClassImpl, OptionalClassMethDecl;
-nonterminal InterfaceDecl, InterfaceMethodDeclList;
+nonterminal InterfaceDecl, InterfaceMethodDeclList, InterfaceImpl;
 nonterminal InterfaceImplList, InterfaceName;
 nonterminal MethodBeforeFirstStmt;
 nonterminal FunctionCall;
@@ -170,10 +170,12 @@ OptionalClassExt ::= (ClassExt) EXTENDS Type
                   (EmptyClassExt) /* epsilon */
                   ;
 
-InterfaceImplList ::= (InterfaceImplementations) InterfaceImplList COMMA Type
+InterfaceImplList ::= (InterfaceImplementations) InterfaceImplList COMMA InterfaceImpl
             |
-            (SingleInterfaceImpl) Type
+            (SingleInterfaceImpl) InterfaceImpl
             ;
+
+InterfaceImpl ::= (InterfaceImpl) Type;
 
 OptionalClassImpl ::= (ClassImpl) IMPLEMENTS InterfaceImplList
                     |

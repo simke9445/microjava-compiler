@@ -25,4 +25,8 @@ public class ExtStruct extends Struct {
             return super.equals(other);
         }
     }
+
+    public boolean isRefType() {
+        return this.getKind()== Interface || super.isRefType();
+    }
 }

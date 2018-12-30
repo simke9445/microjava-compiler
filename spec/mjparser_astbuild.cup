@@ -110,6 +110,7 @@ nonterminal OptionalClassImpl OptionalClassImpl;
 nonterminal OptionalClassMethDecl OptionalClassMethDecl;
 nonterminal InterfaceDecl InterfaceDecl;
 nonterminal InterfaceMethodDeclList InterfaceMethodDeclList;
+nonterminal InterfaceImpl InterfaceImpl;
 nonterminal InterfaceImplList InterfaceImplList;
 nonterminal InterfaceName InterfaceName;
 nonterminal MethodBeforeFirstStmt MethodBeforeFirstStmt;
@@ -201,10 +202,12 @@ OptionalClassExt ::= (ClassExt) EXTENDS Type:T1 {: RESULT=new ClassExt(T1); RESU
                   (EmptyClassExt) {: RESULT=new EmptyClassExt(); :} /* epsilon */
                   ;
 
-InterfaceImplList ::= (InterfaceImplementations) InterfaceImplList:I1 COMMA Type:T2 {: RESULT=new InterfaceImplementations(I1, T2); RESULT.setLine(I1left); :}
+InterfaceImplList ::= (InterfaceImplementations) InterfaceImplList:I1 COMMA InterfaceImpl:I2 {: RESULT=new InterfaceImplementations(I1, I2); RESULT.setLine(I1left); :}
             |
-            (SingleInterfaceImpl) Type:T1 {: RESULT=new SingleInterfaceImpl(T1); RESULT.setLine(T1left); :}
+            (SingleInterfaceImpl) InterfaceImpl:I1 {: RESULT=new SingleInterfaceImpl(I1); RESULT.setLine(I1left); :}
             ;
+
+InterfaceImpl ::= (InterfaceImpl) Type:T1 {: RESULT=new InterfaceImpl(T1); RESULT.setLine(T1left); :};
 
 OptionalClassImpl ::= (ClassImpl) IMPLEMENTS InterfaceImplList:I1 {: RESULT=new ClassImpl(I1); RESULT.setLine(I1left); :}
                     |

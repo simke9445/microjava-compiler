@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 29/11/2018 3:12:52
+// 30/11/2018 18:21:29
 
 
 package rs.ac.bg.etf.pp1.ast;
@@ -143,6 +143,7 @@ public interface Visitor {
     public void visit(ClassMethDecl ClassMethDecl);
     public void visit(EmptyClassImpl EmptyClassImpl);
     public void visit(ClassImpl ClassImpl);
+    public void visit(InterfaceImpl InterfaceImpl);
     public void visit(SingleInterfaceImpl SingleInterfaceImpl);
     public void visit(InterfaceImplementations InterfaceImplementations);
     public void visit(EmptyClassExt EmptyClassExt);

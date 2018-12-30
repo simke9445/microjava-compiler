@@ -1,25 +1,25 @@
 // generated with ast extension for cup
 // version 0.8
-// 29/11/2018 3:12:51
+// 30/11/2018 18:21:28
 
 
 package rs.ac.bg.etf.pp1.ast;
 
 public class SingleInterfaceImpl extends InterfaceImplList {
 
-    private Type Type;
+    private InterfaceImpl InterfaceImpl;
 
-    public SingleInterfaceImpl (Type Type) {
-        this.Type=Type;
-        if(Type!=null) Type.setParent(this);
+    public SingleInterfaceImpl (InterfaceImpl InterfaceImpl) {
+        this.InterfaceImpl=InterfaceImpl;
+        if(InterfaceImpl!=null) InterfaceImpl.setParent(this);
     }
 
-    public Type getType() {
-        return Type;
+    public InterfaceImpl getInterfaceImpl() {
+        return InterfaceImpl;
     }
 
-    public void setType(Type Type) {
-        this.Type=Type;
+    public void setInterfaceImpl(InterfaceImpl InterfaceImpl) {
+        this.InterfaceImpl=InterfaceImpl;
     }
 
     public void accept(Visitor visitor) {
@@ -27,16 +27,16 @@ public class SingleInterfaceImpl extends InterfaceImplList {
     }
 
     public void childrenAccept(Visitor visitor) {
-        if(Type!=null) Type.accept(visitor);
+        if(InterfaceImpl!=null) InterfaceImpl.accept(visitor);
     }
 
     public void traverseTopDown(Visitor visitor) {
         accept(visitor);
-        if(Type!=null) Type.traverseTopDown(visitor);
+        if(InterfaceImpl!=null) InterfaceImpl.traverseTopDown(visitor);
     }
 
     public void traverseBottomUp(Visitor visitor) {
-        if(Type!=null) Type.traverseBottomUp(visitor);
+        if(InterfaceImpl!=null) InterfaceImpl.traverseBottomUp(visitor);
         accept(visitor);
     }
 
@@ -45,8 +45,8 @@ public class SingleInterfaceImpl extends InterfaceImplList {
         buffer.append(tab);
         buffer.append("SingleInterfaceImpl(\n");
 
-        if(Type!=null)
-            buffer.append(Type.toString("  "+tab));
+        if(InterfaceImpl!=null)
+            buffer.append(InterfaceImpl.toString("  "+tab));
         else
             buffer.append(tab+"  null");
         buffer.append("\n");

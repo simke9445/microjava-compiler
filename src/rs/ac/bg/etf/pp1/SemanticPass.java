@@ -9,26 +9,27 @@ import rs.etf.pp1.symboltable.structure.SymbolDataStructure;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Stack;
 
 public class SemanticPass extends VisitorAdaptor {
 
-    boolean errorDetected = false;
-    int printCallCount = 0;
-    Obj currentMethod = null;
-    ArrayList<Obj> currentMethodFormalParams = new ArrayList<>();
-    Stack<ArrayList<Struct>> actualParamsStructStack = new Stack<>();
-    Type currentType = null;
-    boolean returnFound = false;
+    private boolean errorDetected = false;
+    private Obj currentMethod = null;
+    private ArrayList<Obj> currentMethodFormalParams = new ArrayList<>();
+    private Stack<ArrayList<Struct>> actualParamsStructStack = new Stack<>();
+    private Type currentType = null;
+    private boolean returnFound = false;
     int nVars;
-    Obj currentEnum = null;
-    Obj prevEnumField = null;
-    Obj currentClass = null;
-    Obj currentInterface = null;
+    private Obj currentEnum = null;
+    private Obj prevEnumField = null;
+    private Obj currentClass = null;
+    private Obj currentInterface = null;
+    private Stack<Boolean> isInLoopStack = new Stack<>();
 
-    Logger log = Logger.getLogger(getClass());
+    private Logger log = Logger.getLogger(getClass());
 
-    // TODO: add semantic check for using Type Obj
+    // TODO: add semantic check for using Type Obj (already defined keywords)
 
     private void report_error(String message, SyntaxNode info) {
         errorDetected = true;
@@ -36,6 +37,8 @@ public class SemanticPass extends VisitorAdaptor {
         int line = (info == null) ? 0 : info.getLine();
         if (line != 0)
             msg.append(" na liniji ").append(line);
+        else if (info.getParent() != null)
+            msg.append(" na liniji ").append(info.getParent().getLine());
         log.error(msg.toString());
     }
 
@@ -125,12 +128,12 @@ public class SemanticPass extends VisitorAdaptor {
                 Struct formParStruct = methLocalParams.get(i + thisArgOffset).getType();
 
                 if (!this.assignableTo(actParStruct, formParStruct)) {
-                    report_error("U pozivu funkcije " + obj.getName() + " nisu u skladu proslednji stvarni argumenti po tipu ", node);
+                    report_error("Greska: u pozivu metode" + obj.getName() + " nisu u skladu proslednji stvarni argumenti po tipu ", node);
                     break;
                 }
             }
         } else {
-            report_error("U pozivu funkcije " + obj.getName() + " nisu u skladu proslednji stvarni argumenti po broju ", node);
+            report_error("Greska: u pozivu metode " + obj.getName() + " nisu u skladu proslednji stvarni argumenti po broju ", node);
         }
 
     }
@@ -148,7 +151,7 @@ public class SemanticPass extends VisitorAdaptor {
 
         // shadowing allowed so we check only in current scope
         if (symTableVar != null) {
-            report_error("Redeklarisanje promenljive " + varName + " u tabeli simbola", varNode);
+            report_error("Greska: Redeklarisanje promenljive " + varName, varNode);
         } else {
             if (currentClass != null && currentMethod == null) {
                 Obj fldObj = new Obj(Obj.Fld, varName, varStruct, currentClass.getType().getNumberOfFields(), 0);
@@ -165,12 +168,12 @@ public class SemanticPass extends VisitorAdaptor {
                 .anyMatch(x -> x.getName().equals(formParamName));
 
         if (containsFormParam) {
-            report_error("Redeklarisan formalni argument " + formParamName, formParamNode);
+            report_error("Greska: redeklarisan formalni argument " + formParamName, formParamNode);
         } else {
             Obj formParam = SymbolTable.insert(Obj.Var, formParamName, formParamStruct);
             currentMethodFormalParams.add(formParam);
 
-            report_node("Deklarisan formalni argument " + formParamName, formParam, formParamNode);
+//            report_node("Deklarisan formalni argument " + formParamName, formParam, formParamNode);
         }
     }
 
@@ -181,34 +184,30 @@ public class SemanticPass extends VisitorAdaptor {
         // Obj, and as such allow function overloading, as the feature
         // isn't support by current approach.
         if (meth != SymbolTable.noObj) {
-            report_error("Redeklarisanje funkcije " + methodTypeName + " u tabeli simbola", methodNode);
+            report_error("Greska: redeklarisanje metode " + methodTypeName, methodNode);
         } else {
             if (currentClass != null) {
-                Obj methObj = new Obj(Obj.Meth, methodTypeName, methodStruct);
+                Obj methObj = new Obj(Obj.Meth, methodTypeName, methodStruct, 0, 0);
                 currentMethod = methObj;
                 currentClass.getType().getMembersTable().insertKey(currentMethod);
             } else {
                 currentMethod = SymbolTable.insert(Obj.Meth, methodTypeName, methodStruct);
             }
-            // TODO: check if this is necessary
-//			methodTypeName.obj = currentMethod;
-            // no scope for interfaces
-            if (currentInterface == null) {
-                SymbolTable.openScope();
 
-                // add "this" as first formal param
-                if (currentClass != null) {
-                    this.insertFormParamToSymbolTable(SymbolTable.THIS_OBJ_NAME, currentClass.getType(), null);
-                }
+            SymbolTable.openScope();
+
+            // are we inside class/interface declaration?
+            if (currentClass != null) {
+                this.insertFormParamToSymbolTable(SymbolTable.THIS_OBJ_NAME, currentClass.getType(), null);
             }
 
-            report_node("Deklaracija funkcije " + methodTypeName, currentMethod, methodNode);
+//            report_node("Deklaracija metode " + methodTypeName, currentMethod, methodNode);
         }
     }
 
     private Obj getFieldObj(Struct struct, String fieldName, SyntaxNode node) {
         if (struct == null) {
-            report_error("Greska na liniji " + node.getLine() + " : objekat/enumeracija ne sadrzi ime " + fieldName, null);
+            report_error("Greska: objekat/enumeracija ne sadrzi ime " + fieldName, node);
             return SymbolTable.noObj;
         }
 
@@ -219,6 +218,20 @@ public class SemanticPass extends VisitorAdaptor {
         }
 
         return getFieldObj(struct.getElemType(), fieldName, node);
+    }
+
+    // TODO: add class hierarchy traverse generic method
+
+    private boolean alreadyImplementsInterface(Struct classStruct, Struct interfaceStruct) {
+        if (classStruct == null) {
+            return false;
+        }
+
+        if (classStruct.getImplementedInterfaces().contains(interfaceStruct)) {
+            return true;
+        }
+
+        return alreadyImplementsInterface(classStruct.getElemType(), interfaceStruct);
     }
 
     public void visit(Program program) {
@@ -245,17 +258,15 @@ public class SemanticPass extends VisitorAdaptor {
 
         // only global constants allowed
         if (symTableConst != SymbolTable.noObj) {
-            report_error("Redeklarisanje promenljive " + symTableConst.getName() + " u tabeli simbola", constDeclIdent);
+            report_error("Greska: redeklarisanje promenljive " + symTableConst.getName(), constDeclIdent);
         } else if (!constDeclIdent.getConstValue().obj.getType().equals(currentType.struct)) {
-            report_error("Pogresan tip dodeljen konstanti " + constDeclIdent.getConstName(), constDeclIdent);
+            report_error("Greska: pogresan tip dodeljen konstanti " + constDeclIdent.getConstName(), constDeclIdent);
         } else {
             Obj constNode = SymbolTable.insert(Obj.Con, constDeclIdent.getConstName(), currentType.struct);
             constNode.setAdr(constDeclIdent.getConstValue().obj.getAdr());
-            report_node("Deklarisana konstanta " + constDeclIdent.getConstName() + " tipa " + currentType.getTypeName(), constNode, constDeclIdent);
+            report_node("Deklaracija konstante " + constDeclIdent.getConstName(), constNode, constDeclIdent);
         }
     }
-
-    // TODO: implement class symbol table logic
 
     public void visit(ClassName className) {
         Obj obj = SymbolTable.find(className.getName());
@@ -284,11 +295,54 @@ public class SemanticPass extends VisitorAdaptor {
         SymbolTable.closeScope();
         SymbolTable.chainParentMethods(currentClass.getType());
 
+        // check if class implements specified interfaces
+        // we dont check inherited interfaces
+        // since they already passed this check
+        currentClass.getType().getImplementedInterfaces().forEach(iface -> {
+            List<Obj> classMethods = SymbolTable.getClassMethods(currentClass.getType());
+
+            iface.getMembers().forEach(ifaceMethod -> {
+                if (classMethods
+                        .stream()
+                        .noneMatch(method -> {
+                            // check if interface method signatures are the same
+                            boolean sameNames = method.getName().equals(ifaceMethod.getName());
+                            boolean sameReturnType = method.getType().equals(ifaceMethod.getType());
+                            boolean sameFormalArgs = method.getLevel() == ifaceMethod.getLevel();
+
+                            if (!(sameNames && sameReturnType && sameFormalArgs)) {
+                                return false;
+                            }
+
+                            // compare each formal arg  pair
+                            List<Obj> ifaceArgList = new ArrayList<>(ifaceMethod.getLocalSymbols());
+                            List<Obj> methodArgList = new ArrayList<>(method.getLocalSymbols());
+
+                            // start from 1, we avoid comparing "this"
+                            for (int i = 1; i < ifaceMethod.getLevel(); i++) {
+                                if (!ifaceArgList.get(i).equals(methodArgList.get(i))) {
+                                    sameFormalArgs = false;
+                                }
+                            }
+
+                            return sameFormalArgs;
+                        })
+                ) {
+                    report_error("Greska: klasa " + currentClass.getName() + " ne implementira sve metode specificiranih interfjesa", classDecl);
+                }
+            });
+        });
+
         classDecl.obj = currentClass;
         currentClass = null;
     }
 
     public void visit(ClassExt classExt) {
+        if (currentType.struct.getKind() != Struct.Class) {
+            report_error("Greska: " + currentType.getTypeName() + " nije klasa", classExt);
+            return;
+        }
+
         // add class ext
         currentClass.getType().setElementType(currentType.struct);
 
@@ -298,21 +352,30 @@ public class SemanticPass extends VisitorAdaptor {
                 .forEach(fld -> this.updateClassMembers(currentClass.getType(), fld));
     }
 
-    public void visit(SingleInterfaceImpl singleInterface) {
-        // add class impl
+    public void visit(InterfaceImpl InterfaceImpl) {
+         if (currentType.struct.getKind() != Struct.Interface) {
+            report_error("Greska: " + currentType.getTypeName() + " nije interfejs", InterfaceImpl);
+            return;
+         }
+
+        // check if one of the classes already implements
+        if (alreadyImplementsInterface(currentClass.getType(), currentType.struct)) {
+            report_error("Greska: klasa vec nasledjuje " + currentType.getTypeName() + " interfejs", InterfaceImpl);
+            return;
+        }
+
         currentClass.getType().addImplementedInterface(currentType.struct);
     }
-
-    // TODO: implement interface symbol table logic
 
     public void visit(InterfaceName interfaceName) {
         Obj obj = SymbolTable.find(interfaceName.getName());
 
         if (obj != SymbolTable.noObj) {
             // obj node with same name already exists
+            report_error("Greska: ime " + interfaceName.getName() + " vec deklarisano", interfaceName);
         } else {
             // TODO: check if we can hold interface and class on the same variable
-            currentClass = SymbolTable.insert(Obj.Type, interfaceName.getName(), new Struct(Struct.Interface));
+            currentClass = SymbolTable.insert(Obj.Type, interfaceName.getName(), new ExtStruct(Struct.Interface));
             currentInterface = currentClass;
         }
     }
@@ -325,7 +388,7 @@ public class SemanticPass extends VisitorAdaptor {
         Obj node = SymbolTable.find(enumName.getName());
 
         if (node != SymbolTable.noObj) {
-            report_error("Redeklarisanje funkcije " + enumName.getName() + " u tabeli simbola", enumName);
+            report_error("Greska: ime" + enumName.getName() + " vec deklarisano", enumName);
         } else {
             currentEnum = SymbolTable.insert(Obj.Type, enumName.getName(), new Struct(Struct.Enum));
 
@@ -353,7 +416,7 @@ public class SemanticPass extends VisitorAdaptor {
         Obj enumFieldObj = new Obj(Obj.Con, enumField.getName(), SymbolTable.intType, enumField.getValue(), Obj.NO_VALUE);
 
         if (enumFields.symbols().stream().anyMatch(x -> x.getAdr() == enumField.getValue())) {
-            report_error("Redeklarisana vrednost " + enumField.getValue() + " nabrajanja " + enumField.getName(), enumField);
+            report_error("Greska: redeklarisana vrednost " + enumField.getValue() + " nabrajanja " + enumField.getName(), enumField);
         } else {
             enumFields.insertKey(enumFieldObj);
             prevEnumField = enumFieldObj;
@@ -361,7 +424,7 @@ public class SemanticPass extends VisitorAdaptor {
     }
 
     public void visit(EnumDecl enumDecl) {
-        report_node("Deklarisana enumeracija " + enumDecl.getEnumName().getName(), currentEnum, enumDecl);
+        report_node("Deklaracija enumeracije " + enumDecl.getEnumName().getName(), currentEnum, enumDecl);
 
         currentEnum = null;
         prevEnumField = null;
@@ -394,7 +457,7 @@ public class SemanticPass extends VisitorAdaptor {
     public void visit(Type type) {
         Obj typeNode = SymbolTable.find(type.getTypeName());
         if (typeNode == SymbolTable.noObj) {
-            report_error("Nije pronadjen tip " + type.getTypeName() + " u tabeli simbola", type);
+            report_error("Greska: nije pronadjen tip " + type.getTypeName() + " u tabeli simbola", type);
             type.struct = SymbolTable.noType;
         } else {
             if (Obj.Type == typeNode.getKind()) {
@@ -405,7 +468,7 @@ public class SemanticPass extends VisitorAdaptor {
                     type.struct = SymbolTable.intType;
                 }
             } else {
-                report_error("Greska: Ime " + type.getTypeName() + " ne predstavlja tip ", type);
+                report_error("Greska: ime " + type.getTypeName() + " ne predstavlja tip ", type);
                 type.struct = SymbolTable.noType;
             }
         }
@@ -420,7 +483,7 @@ public class SemanticPass extends VisitorAdaptor {
         // 3. check formal args
 
         if (!returnFound && currentMethod.getType() != SymbolTable.noType) {
-            report_error("Semanticka greska na liniji " + methodDecl.getLine() + ": funkcija " + currentMethod.getName() + " nema return iskaz!", null);
+            report_error("Greska: metoda " + currentMethod.getName() + " nema return iskaz!", methodDecl);
         }
 
         // always bound to an openScope caller
@@ -447,8 +510,12 @@ public class SemanticPass extends VisitorAdaptor {
         pars.obj = currentMethod;
 
         // if in interface, reset the currentMethod as it's
-        // reset is in the methodDecl otherwise
+        // reset is in the methodDecl otherwise & chain locals
         if (currentInterface != null) {
+            SymbolTable.chainLocalSymbols(currentMethod);
+            SymbolTable.closeScope();
+            currentMethodFormalParams.clear();
+
             currentMethod = null;
         }
     }
@@ -468,7 +535,33 @@ public class SemanticPass extends VisitorAdaptor {
 
     public void visit(Assignment assignment) {
         if (!this.assignableTo(assignment.getExpr().struct, assignment.getDesignator().obj.getType()))
-            report_error("Greska na liniji " + assignment.getLine() + " : " + " nekompatibilni tipovi u dodeli vrednosti ", null);
+            report_error("Greska: nekompatibilni tipovi u dodeli vrednosti ", assignment);
+    }
+
+    public void visit(Increment increment) {
+        Obj obj = increment.getDesignator().obj;
+
+        boolean isCorrectType = obj.getType().equals(SymbolTable.intType);
+        boolean isCorrectRole = obj.getKind() == Obj.Elem ||
+                obj.getKind() == Obj.Fld ||
+                obj.getKind() == Obj.Var;
+
+        if (!isCorrectType || !isCorrectRole) {
+            report_error("Greska: nedozvoljen tip designatora", increment);
+        }
+    }
+
+    public void visit(Decrement decrement) {
+        Obj obj = decrement.getDesignator().obj;
+
+        boolean isCorrectType = obj.getType().equals(SymbolTable.intType);
+        boolean isCorrectRole = obj.getKind() == Obj.Elem ||
+                obj.getKind() == Obj.Fld ||
+                obj.getKind() == Obj.Var;
+
+        if (!isCorrectType || !isCorrectRole) {
+            report_error("Greska: nedozvoljen tip designatora", decrement);
+        }
     }
 
     public void visit(ProcCall procCall) {
@@ -480,9 +573,9 @@ public class SemanticPass extends VisitorAdaptor {
 
             this.matchActualAndFormalParams(formParamNum, currentActParamStructs, func, procCall);
 
-            report_node("Pronadjen poziv funkcije " + func.getName(), func, procCall);
+            report_node("Pronadjen poziv metode " + func.getName(), func, procCall);
         } else {
-            report_error("Greska na liniji " + procCall.getLine() + " : ime " + func.getName() + " nije funkcija!", null);
+            report_error("Greska: ime " + func.getName() + " nije metoda!", procCall);
         }
     }
 
@@ -491,7 +584,7 @@ public class SemanticPass extends VisitorAdaptor {
         Struct currMethType = currentMethod.getType();
 
         if (!currMethType.compatibleWith(returnExpr.getExpr().struct)) {
-            report_error("Greska na liniji " + returnExpr.getLine() + " : " + "tip izraza u return naredbi ne slaze se sa tipom povratne vrednosti funkcije " + currentMethod.getName(), null);
+            report_error("Greska: tip izraza u return naredbi ne slaze se sa tipom povratne vrednosti metode " + currentMethod.getName(), returnExpr);
         }
     }
 
@@ -501,7 +594,7 @@ public class SemanticPass extends VisitorAdaptor {
 
         // check for void scenario
         if (currMethType != SymbolTable.noType) {
-            report_error("Greska na liniji " + returnExpr.getLine() + " : " + "praznu return naredbu moze imati samo void funkcija, za razliku od trenutne " + currentMethod.getName(), null);
+            report_error("Greska: praznu return naredbu moze imati samo void metoda, za razliku od trenutne " + currentMethod.getName(), returnExpr);
         }
     }
 
@@ -514,7 +607,7 @@ public class SemanticPass extends VisitorAdaptor {
         if (isIntAdd)
             addExpr.struct = te;
         else {
-            report_error("Greska na liniji " + addExpr.getLine() + " : nekompatibilni tipovi u izrazu za sabiranje.", null);
+            report_error("Greska: nekompatibilni tipovi u izrazu za sabiranje", addExpr);
             addExpr.struct = SymbolTable.noType;
         }
     }
@@ -525,7 +618,7 @@ public class SemanticPass extends VisitorAdaptor {
         if (termStruct.equals(SymbolTable.intType)) {
             negExpr.struct = termStruct;
         } else {
-            report_error("Greska na liniji " + negExpr.getLine() + " : nekompatibilan tip izraza za negaciju.", null);
+            report_error("Greska: nekompatibilan tip izraza za negaciju.", negExpr);
             negExpr.struct = SymbolTable.noType;
         }
     }
@@ -547,7 +640,7 @@ public class SemanticPass extends VisitorAdaptor {
         if (isIntMul) {
             mulTerm.struct = SymbolTable.intType;
         } else {
-            report_error("Greska na liniji " + mulTerm.getLine() + " : nekompatibilni tipovi u izrazu za mnozenje.", null);
+            report_error("Greska: nekompatibilni tipovi u izrazu za mnozenje", mulTerm);
             mulTerm.struct = SymbolTable.noType;
         }
     }
@@ -577,6 +670,14 @@ public class SemanticPass extends VisitorAdaptor {
     }
 
     public void visit(Alloc alloc) {
+        if (alloc.getType().struct.getKind() != Struct.Class) {
+            report_error("Greska: tip operator new nije klasa", alloc);
+        } else {
+            Obj obj = SymbolTable.find(alloc.getType().getTypeName());
+
+            report_node("Pronadjeno pravljenje objekta klase " + alloc.getType().getTypeName(), obj, alloc);
+        }
+
         alloc.struct = alloc.getType().struct;
     }
 
@@ -584,7 +685,7 @@ public class SemanticPass extends VisitorAdaptor {
         Struct struct = new Struct(Struct.Array, SymbolTable.noType);
 
         if (!arrayAlloc.getExpr().struct.equals(SymbolTable.intType)) {
-            report_error("Vrednost kojom se alocira niz nije int ", arrayAlloc);
+            report_error("Greska: vrednost kojom se alocira niz nije int ", arrayAlloc);
         } else {
             struct = new Struct(Struct.Array, arrayAlloc.getType().struct);
         }
@@ -601,10 +702,10 @@ public class SemanticPass extends VisitorAdaptor {
 
             this.matchActualAndFormalParams(formParamNum, currentActParamStructs, func, funcCall);
 
-            report_node("Pronadjen poziv funkcije " + func.getName(), func, funcCall);
+            report_node("Pronadjen poziv metode " + func.getName(), func, funcCall);
             funcCall.struct = func.getType();
         } else {
-            report_error("Greska na liniji " + funcCall.getLine() + " : ime " + func.getName() + " nije funkcija!", null);
+            report_error("Greska: ime " + func.getName() + " nije metoda!", funcCall);
             funcCall.struct = SymbolTable.noType;
         }
     }
@@ -617,7 +718,7 @@ public class SemanticPass extends VisitorAdaptor {
                 // act as we reference "this" in current class definition
                 obj = getFieldObj(currentClass.getType(), designator.getName(), designator);
             } else {
-                report_error("Greska na liniji " + designator.getLine() + " : ime " + designator.getName() + " nije deklarisano! ", null);
+                report_error("Greska: ime " + designator.getName() + " nije deklarisano! ", designator);
             }
         } else {
             // check formal param usage
@@ -629,18 +730,16 @@ public class SemanticPass extends VisitorAdaptor {
         designator.obj = obj;
     }
 
-    // TODO: refactor pls
-
     public void visit(ArrayDesignator arrayDesignator) {
         Obj designatorObj = arrayDesignator.getDesignator().obj;
         arrayDesignator.obj = SymbolTable.noObj;
 
         if (designatorObj == SymbolTable.noObj) {
-            report_error("Greska na liniji " + arrayDesignator.getLine() + " : ime " + designatorObj.getName() + " nije deklarisano! ", null);
+            report_error("Greska: ime " + designatorObj.getName() + " nije deklarisano! ", arrayDesignator);
         } else if (designatorObj.getType().getKind() != Struct.Array) {
-            report_error("Element " + designatorObj.getName() + " nije nizovnog tipa", arrayDesignator);
+            report_error("Greska: element " + designatorObj.getName() + " nije nizovnog tipa", arrayDesignator);
         } else if (!arrayDesignator.getExpr().struct.equals(SymbolTable.intType)) {
-            report_error("Vrednost kojom se pristupa elementu nizovnog tipa " + designatorObj.getName() + " nije int ", arrayDesignator);
+            report_error("Greska: vrednost kojom se pristupa elementu nizovnog tipa " + designatorObj.getName() + " nije int ", arrayDesignator);
         } else {
             // check formal param usage
             if (currentMethodFormalParams.contains(designatorObj)) {
@@ -662,19 +761,99 @@ public class SemanticPass extends VisitorAdaptor {
 
         switch (leftObj.getType().getKind()) {
             case Struct.None:
-                report_error("Greska na liniji " + designator.getLine() + " : ime " + designator.getName() + " nije deklarisano! ", null);
+                report_error("Greska: ime " + designator.getName() + " nije deklarisano! ", designator);
                 break;
             case Struct.Enum:
             case Struct.Class:
             case Struct.Interface:
                 leftObj = this.getFieldObj(leftObj.getType(), designator.getName(), designator);
+
+                if (leftObj != SymbolTable.noObj) {
+                    report_node("Pronadjen pristup polju " + leftObj.getName(), leftObj, designator);
+                }
+
                 break;
             default:
-                report_error("Greska na liniji " + designator.getLine() + " : ime " + designator.getName() + " nije objekat/enumeracija! ", null);
+                report_error("Greska: ime " + designator.getName() + " nije objekat/enumeracija! ", designator);
                 break;
         }
 
         designator.obj = leftObj;
+    }
+
+    public void visit(ForPreCondition forPreCondition) {
+        isInLoopStack.push(true);
+    }
+
+    public void visit(BreakStmt breakStmt) {
+        if (isInLoopStack.empty()) {
+            report_error("Greska: break naredba van petlje", breakStmt);
+        }
+    }
+
+    public void visit(ContinueStmt continueStmt) {
+        if (isInLoopStack.empty()) {
+            report_error("Greska: continue naredba van petlje", continueStmt);
+        }
+    }
+
+    public void visit(MatchedFor matchedFor) {
+        isInLoopStack.pop();
+    }
+
+    public void visit(UnmatchedFor unmatchedFor) {
+        isInLoopStack.pop();
+    }
+
+    public void visit(RelopCondFact relopCondFact) {
+        Struct struct1 = relopCondFact.getExpr().struct;
+        Struct struct2 = relopCondFact.getExpr1().struct;
+
+        if (!struct1.compatibleWith(struct2)) {
+            report_error("Greska: nekompatibilni tipovi u condition iskazu", relopCondFact);
+        }
+
+        boolean isClassExpr = struct1.getKind() == Struct.Class || struct2.getKind() == Struct.Class;
+        boolean isAllowedClassExprRelop =
+                relopCondFact.getRelop() instanceof IsEqualRelop ||
+                        relopCondFact.getRelop() instanceof  NotEqualRelop;
+
+        if (isClassExpr && !isAllowedClassExprRelop) {
+            report_error("Greska: nedozovljena operacija komparacije", relopCondFact);
+        }
+    }
+
+    public void visit(ExprCondFact exprCondFact) {
+        if (!exprCondFact.getExpr().struct.equals(SymbolTable.boolType)) {
+            report_error("Greska: tip condition iskaza nije bool", exprCondFact);
+        }
+    }
+
+    public void visit(PrintStmt printStmt) {
+        Struct struct = printStmt.getExpr().struct;
+
+        if (!(struct == SymbolTable.intType ||
+                struct == SymbolTable.boolType ||
+                struct == SymbolTable.charType)) {
+            report_error("Greska: nedozvoljen tip expr", printStmt);
+        }
+    }
+
+    public void visit(ReadStmt readStmt) {
+        Struct struct = readStmt.getDesignator().obj.getType();
+        Obj obj = readStmt.getDesignator().obj;
+
+        boolean isCorrectType = struct == SymbolTable.intType ||
+                struct == SymbolTable.boolType ||
+                struct == SymbolTable.charType;
+
+        boolean isCorrectRole = obj.getKind() == Obj.Fld ||
+                obj.getKind() == Obj.Var ||
+                obj.getKind() == Obj.Elem;
+
+        if (!isCorrectType || !isCorrectRole) {
+            report_error("Greska: nedozvoljen tip designatora", readStmt);
+        }
     }
 
     public boolean passed() {
